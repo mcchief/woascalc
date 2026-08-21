@@ -608,6 +608,35 @@
       white-space:nowrap;
     }
 
+    th.sortable{
+      cursor:pointer;
+      user-select:none;
+      transition:background .18s ease,color .18s ease;
+    }
+
+    th.sortable:hover{
+      background:rgba(20,36,62,.98);
+    }
+
+    th.sortable::after{
+      content:" ↕";
+      opacity:.45;
+      font-size:.8em;
+      margin-left:4px;
+    }
+
+    th.sortable.sort-asc::after{
+      content:" ▲";
+      opacity:1;
+      color:var(--gold2);
+    }
+
+    th.sortable.sort-desc::after{
+      content:" ▼";
+      opacity:1;
+      color:var(--gold2);
+    }
+
     tbody tr{
       transition:background .18s ease, transform .18s ease;
     }
@@ -972,14 +1001,14 @@
           <table>
             <thead>
               <tr>
-                <th id="thOrder">Order</th>
-                <th id="thTier">Tier</th>
-                <th id="thName">Name</th>
-                <th id="thType">Type</th>
-                <th id="thCount">Count</th>
-                <th id="thHP">HP / Unit</th>
-                <th id="thTotal">Total HP</th>
-                <th id="thGroup">Group</th>
+                <th id="thOrder" class="sortable sort-asc" data-sort="order">Order</th>
+                <th id="thTier" class="sortable" data-sort="tier">Tier</th>
+                <th id="thName" class="sortable" data-sort="name">Name</th>
+                <th id="thType" class="sortable" data-sort="unitType">Type</th>
+                <th id="thCount" class="sortable" data-sort="count">Count</th>
+                <th id="thHP" class="sortable" data-sort="hp">HP / Unit</th>
+                <th id="thTotal" class="sortable" data-sort="total">Total HP</th>
+                <th id="thGroup" class="sortable" data-sort="group">Group</th>
               </tr>
             </thead>
             <tbody id="outputBody"></tbody>
@@ -1671,6 +1700,79 @@
       els.messages.innerHTML = `<span class="status-pill bad">${msg}</span>`;
     }
 
+    const sortState = {
+      key: "order",
+      direction: "asc"
+    };
+
+    function tierSortValue(tier){
+      const text = String(tier || "");
+      const match = text.match(/^([GSM])(\d+)$/i);
+      if (match) {
+        const groupRank = { G:3, S:2, M:1 }[match[1].toUpperCase()] || 0;
+        return (groupRank * 100) + Number(match[2]);
+      }
+      if (text.toLowerCase() === "merc") return -1;
+      return 0;
+    }
+
+    function compareRows(a, b, key){
+      if (key === "order" || key === "count" || key === "hp" || key === "total") {
+        return Number(a[key] || 0) - Number(b[key] || 0);
+      }
+
+      if (key === "tier") {
+        const tierDiff = tierSortValue(a.tier) - tierSortValue(b.tier);
+        if (tierDiff !== 0) return tierDiff;
+        return String(a.tier || "").localeCompare(String(b.tier || ""), undefined, {numeric:true, sensitivity:"base"});
+      }
+
+      return String(a[key] || "").localeCompare(
+        String(b[key] || ""),
+        undefined,
+        {numeric:true, sensitivity:"base"}
+      );
+    }
+
+    function sortRowsForDisplay(rows){
+      const sorted = [...rows];
+      sorted.sort((a,b) => {
+        const primary = compareRows(a,b,sortState.key);
+        if (primary !== 0) {
+          return sortState.direction === "asc" ? primary : -primary;
+        }
+
+        // Stable fallback to original calculated order.
+        return Number(a.order || 0) - Number(b.order || 0);
+      });
+      return sorted;
+    }
+
+    function updateSortIndicators(){
+      document.querySelectorAll("th.sortable").forEach(th => {
+        th.classList.remove("sort-asc","sort-desc");
+        if (th.dataset.sort === sortState.key) {
+          th.classList.add(sortState.direction === "asc" ? "sort-asc" : "sort-desc");
+        }
+      });
+    }
+
+    function handleHeaderSort(event){
+      const th = event.currentTarget;
+      const key = th.dataset.sort;
+      if (!key) return;
+
+      if (sortState.key === key) {
+        sortState.direction = sortState.direction === "asc" ? "desc" : "asc";
+      } else {
+        sortState.key = key;
+        sortState.direction = "asc";
+      }
+
+      updateSortIndicators();
+      render();
+    }
+
     function render(){
       const result = buildRows();
 
@@ -1713,9 +1815,11 @@
         return matchesFilter && matchesSearch;
       });
 
-      els.rowCount.textContent = String(filtered.length);
+      const displayedRows = sortRowsForDisplay(filtered);
 
-      els.outputBody.innerHTML = filtered.map(r => `
+      els.rowCount.textContent = String(displayedRows.length);
+
+      els.outputBody.innerHTML = displayedRows.map(r => `
         <tr>
           <td>${r.order}</td>
           <td class="mono">${r.tier}</td>
@@ -1745,6 +1849,9 @@
       syncTierCheckboxState();
       els.searchUnit.value = "";
       syncFilters("all");
+      sortState.key = "order";
+      sortState.direction = "asc";
+      updateSortIndicators();
       document.getElementById("language").value = "en";
       applyLanguage();
       render();
@@ -1787,6 +1894,11 @@
 
       els.searchUnit.addEventListener("input", render);
 
+      document.querySelectorAll("th.sortable").forEach(th => {
+        th.addEventListener("click", handleHeaderSort);
+        th.setAttribute("title", "Click to sort. Click again to reverse.");
+      });
+
       document.querySelectorAll('input[name="stackMode"]').forEach(el => el.addEventListener("change", () => {
         syncTierCheckboxState();
         render();
@@ -1812,6 +1924,7 @@
     bindEvents();
     applyLanguage();
     syncTierCheckboxState();
+    updateSortIndicators();
     render();
     handleToTopVisibility();
   </script>
