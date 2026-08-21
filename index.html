@@ -465,8 +465,11 @@
       color:var(--muted);
       font-size:.8rem;
       line-height:1.5;
-      margin-top:8px;
+      margin-top:10px;
     }
+    .tier-section{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.025);}
+    .tier-section-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;color:#eaf2ff;font-size:.86rem;font-weight:900;}
+    .tier-section-title small{color:var(--muted);font-size:.7rem;font-weight:700;}
 
     @media (max-width:560px){
       .tier-check-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
@@ -903,25 +906,47 @@
 
           <div class="field">
             <label id="troopLevelLabel">Troop Levels to Include</label>
-            <div class="tier-check-grid" id="guardTierChecks">
-              <label class="choice"><input class="tierCheck" type="checkbox" value="G3"><span>G3</span></label>
-              <label class="choice"><input class="tierCheck" type="checkbox" value="G4"><span>G4</span></label>
-              <label class="choice"><input class="tierCheck" type="checkbox" value="G5" checked><span>G5</span></label>
-              <label class="choice"><input class="tierCheck" type="checkbox" value="G6" checked><span>G6</span></label>
-              <label class="choice"><input class="tierCheck" type="checkbox" value="G7" checked><span>G7</span></label>
-              <label class="choice"><input class="tierCheck" type="checkbox" value="G8"><span>G8</span></label>
-              <label class="choice"><input class="tierCheck" type="checkbox" value="G9"><span>G9</span></label>
+
+            <div class="tier-section">
+              <div class="tier-section-title"><span>Guardsmen</span><small>G-Tiers</small></div>
+              <div class="tier-check-grid" id="guardTierChecks">
+                <label class="choice"><input class="tierCheck" type="checkbox" value="G3"><span>G3</span></label>
+                <label class="choice"><input class="tierCheck" type="checkbox" value="G4"><span>G4</span></label>
+                <label class="choice"><input class="tierCheck" type="checkbox" value="G5" checked><span>G5</span></label>
+                <label class="choice"><input class="tierCheck" type="checkbox" value="G6" checked><span>G6</span></label>
+                <label class="choice"><input class="tierCheck" type="checkbox" value="G7" checked><span>G7</span></label>
+                <label class="choice"><input class="tierCheck" type="checkbox" value="G8"><span>G8</span></label>
+                <label class="choice"><input class="tierCheck" type="checkbox" value="G9"><span>G9</span></label>
+              </div>
             </div>
-            <div class="tier-check-grid" id="specialistTierChecks" style="margin-top:10px;">
-              <label class="choice specialist-choice"><input class="specTierCheck" type="checkbox" value="S7"><span>S7</span></label>
-              <label class="choice specialist-choice"><input class="specTierCheck" type="checkbox" value="S8"><span>S8</span></label>
-              <label class="choice specialist-choice"><input class="specTierCheck" type="checkbox" value="S9"><span>S9</span></label>
+
+            <div class="tier-section">
+              <div class="tier-section-title"><span>Specialists</span><small>S-Tiers</small></div>
+              <div class="tier-check-grid" id="specialistTierChecks">
+                <label class="choice specialist-choice"><input class="specTierCheck" type="checkbox" value="S7"><span>S7</span></label>
+                <label class="choice specialist-choice"><input class="specTierCheck" type="checkbox" value="S8"><span>S8</span></label>
+                <label class="choice specialist-choice"><input class="specTierCheck" type="checkbox" value="S9"><span>S9</span></label>
+              </div>
             </div>
+
+            <div class="tier-section">
+              <div class="tier-section-title"><span>Monsters</span><small>M-Tiers</small></div>
+              <div class="tier-check-grid" id="monsterTierChecks">
+                <label class="choice"><input class="monsterTierCheck" type="checkbox" value="M4"><span>M4</span></label>
+                <label class="choice"><input class="monsterTierCheck" type="checkbox" value="M5"><span>M5</span></label>
+                <label class="choice"><input class="monsterTierCheck" type="checkbox" value="M6"><span>M6</span></label>
+                <label class="choice"><input class="monsterTierCheck" type="checkbox" value="M7"><span>M7</span></label>
+                <label class="choice"><input class="monsterTierCheck" type="checkbox" value="M8"><span>M8</span></label>
+                <label class="choice"><input class="monsterTierCheck" type="checkbox" value="M9"><span>M9</span></label>
+              </div>
+            </div>
+
             <div class="tier-help">
-              Tick only the troop tiers you want included. Lower Guardsmen tiers keep the ×1.84 step ratio. Specialists keep ×1.03 against the matching Guardsmen tier. S7 Vulture keeps its special equal-count rule.
+              Tick only the tiers you want included. Guardsmen retain the ×1.84 tier-step principle, Specialists retain ×1.03 against the matching Guardsmen tier, and selected Monster tiers are added as opening stack layers where available.
             </div>
           </div>
-		            <div class="field">
+
+          <div class="field">
             <label id="stackModeLabel">Stack Mode</label>
             <div class="inline-radio">
               <label class="choice">
@@ -1377,6 +1402,12 @@
       });
 
       return {x, countsByTier, highest, denominator};
+    }
+
+    function getSelectedMonsterTiers(){
+      return Array.from(document.querySelectorAll(".monsterTierCheck:checked"))
+        .map(el => el.value)
+        .sort((a,b) => Number(a.slice(1)) - Number(b.slice(1)));
     }
 
     function selectedMonsterLevels(high){
@@ -1845,7 +1876,7 @@
       document.querySelector('input[name="stackMode"][value="guards"]').checked = true;
       document.querySelector('input[name="modernisation"][value="no"]').checked = true;
       document.querySelectorAll(".tierCheck").forEach(el => el.checked = ["G5","G6","G7"].includes(el.value));
-      document.querySelectorAll(".specTierCheck").forEach(el => el.checked = false);
+      document.querySelectorAll(".specTierCheck").forEach(el => el.checked = false);\n      document.querySelectorAll(".monsterTierCheck").forEach(el => el.checked = false);
       syncTierCheckboxState();
       els.searchUnit.value = "";
       syncFilters("all");
@@ -1907,7 +1938,7 @@
         syncTierCheckboxState();
         render();
       }));
-      document.querySelectorAll(".tierCheck, .specTierCheck").forEach(el => el.addEventListener("change", render));
+      document.querySelectorAll(".tierCheck, .specTierCheck, .monsterTierCheck").forEach(el => el.addEventListener("change", render));
 
       document.getElementById("language").addEventListener("change", () => {
         applyLanguage();
