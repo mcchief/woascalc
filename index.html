@@ -445,36 +445,6 @@
       margin-top:4px;
     }
 
-    .tier-check-grid{
-      display:grid;
-      grid-template-columns:repeat(4,minmax(0,1fr));
-      gap:10px;
-      margin-top:4px;
-    }
-
-    .tier-check-grid .choice{
-      min-width:0;
-      justify-content:flex-start;
-    }
-
-    .tier-check-grid .choice.disabled{
-      opacity:.45;
-    }
-
-    .tier-help{
-      color:var(--muted);
-      font-size:.8rem;
-      line-height:1.5;
-      margin-top:10px;
-    }
-    .tier-section{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.025);}
-    .tier-section-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;color:#eaf2ff;font-size:.86rem;font-weight:900;}
-    .tier-section-title small{color:var(--muted);font-size:.7rem;font-weight:700;}
-
-    @media (max-width:560px){
-      .tier-check-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
-    }
-
     .choice{
       display:flex;
       align-items:center;
@@ -609,35 +579,6 @@
       color:#dce8ff;
       backdrop-filter:blur(10px);
       white-space:nowrap;
-    }
-
-    th.sortable{
-      cursor:pointer;
-      user-select:none;
-      transition:background .18s ease,color .18s ease;
-    }
-
-    th.sortable:hover{
-      background:rgba(20,36,62,.98);
-    }
-
-    th.sortable::after{
-      content:" ↕";
-      opacity:.45;
-      font-size:.8em;
-      margin-left:4px;
-    }
-
-    th.sortable.sort-asc::after{
-      content:" ▲";
-      opacity:1;
-      color:var(--gold2);
-    }
-
-    th.sortable.sort-desc::after{
-      content:" ▼";
-      opacity:1;
-      color:var(--gold2);
     }
 
     tbody tr{
@@ -905,48 +846,16 @@
           </div>
 
           <div class="field">
-            <label id="troopLevelLabel">Troop Levels to Include</label>
-
-            <div class="tier-section">
-              <div class="tier-section-title"><span>Guardsmen</span><small>G-Tiers</small></div>
-              <div class="tier-check-grid" id="guardTierChecks">
-                <label class="choice"><input class="tierCheck" type="checkbox" value="G3"><span>G3</span></label>
-                <label class="choice"><input class="tierCheck" type="checkbox" value="G4"><span>G4</span></label>
-                <label class="choice"><input class="tierCheck" type="checkbox" value="G5" checked><span>G5</span></label>
-                <label class="choice"><input class="tierCheck" type="checkbox" value="G6" checked><span>G6</span></label>
-                <label class="choice"><input class="tierCheck" type="checkbox" value="G7" checked><span>G7</span></label>
-                <label class="choice"><input class="tierCheck" type="checkbox" value="G8"><span>G8</span></label>
-                <label class="choice"><input class="tierCheck" type="checkbox" value="G9"><span>G9</span></label>
-              </div>
-            </div>
-
-            <div class="tier-section">
-              <div class="tier-section-title"><span>Specialists</span><small>S-Tiers</small></div>
-              <div class="tier-check-grid" id="specialistTierChecks">
-                <label class="choice specialist-choice"><input class="specTierCheck" type="checkbox" value="S7"><span>S7</span></label>
-                <label class="choice specialist-choice"><input class="specTierCheck" type="checkbox" value="S8"><span>S8</span></label>
-                <label class="choice specialist-choice"><input class="specTierCheck" type="checkbox" value="S9"><span>S9</span></label>
-              </div>
-            </div>
-
-            <div class="tier-section">
-              <div class="tier-section-title"><span>Monsters</span><small>M-Tiers</small></div>
-              <div class="tier-check-grid" id="monsterTierChecks">
-                <label class="choice"><input class="monsterTierCheck" type="checkbox" value="M4"><span>M4</span></label>
-                <label class="choice"><input class="monsterTierCheck" type="checkbox" value="M5"><span>M5</span></label>
-                <label class="choice"><input class="monsterTierCheck" type="checkbox" value="M6"><span>M6</span></label>
-                <label class="choice"><input class="monsterTierCheck" type="checkbox" value="M7"><span>M7</span></label>
-                <label class="choice"><input class="monsterTierCheck" type="checkbox" value="M8"><span>M8</span></label>
-                <label class="choice"><input class="monsterTierCheck" type="checkbox" value="M9"><span>M9</span></label>
-              </div>
-            </div>
-
-            <div class="tier-help">
-              Tick only the tiers you want included. Guardsmen retain the ×1.84 tier-step principle, Specialists retain ×1.03 against the matching Guardsmen tier, and selected Monster tiers are added as opening stack layers where available.
-            </div>
+            <label for="troopLevel" id="troopLevelLabel">Highest Troop Level</label>
+            <select id="troopLevel" class="control">
+              <option>G5</option>
+              <option>G6</option>
+              <option selected>G7</option>
+              <option>G8</option>
+              <option>G9</option>
+            </select>
           </div>
-
-          <div class="field">
+		            <div class="field">
             <label id="stackModeLabel">Stack Mode</label>
             <div class="inline-radio">
               <label class="choice">
@@ -982,7 +891,7 @@
           <div class="hint">
             <strong id="howTitle">How to use:</strong><br>
             <span id="how1">1. Enter Leadership, Authority and Dominance.</span><br>
-            <span id="how2">2. Tick the troop levels you want and choose stack mode.</span><br>
+            <span id="how2">2. Pick troop level and stack mode.</span><br>
             <span id="how3">3. Specialists are blocked unless Army Modernisation is completed.</span><br>
             <span id="how4">4. Leadership is rounded down to the nearest 1,000 for the calculation basis.</span>
           </div>
@@ -1026,14 +935,14 @@
           <table>
             <thead>
               <tr>
-                <th id="thOrder" class="sortable sort-asc" data-sort="order">Order</th>
-                <th id="thTier" class="sortable" data-sort="tier">Tier</th>
-                <th id="thName" class="sortable" data-sort="name">Name</th>
-                <th id="thType" class="sortable" data-sort="unitType">Type</th>
-                <th id="thCount" class="sortable" data-sort="count">Count</th>
-                <th id="thHP" class="sortable" data-sort="hp">HP / Unit</th>
-                <th id="thTotal" class="sortable" data-sort="total">Total HP</th>
-                <th id="thGroup" class="sortable" data-sort="group">Group</th>
+                <th id="thOrder">Order</th>
+                <th id="thTier">Tier</th>
+                <th id="thName">Name</th>
+                <th id="thType">Type</th>
+                <th id="thCount">Count</th>
+                <th id="thHP">HP / Unit</th>
+                <th id="thTotal">Total HP</th>
+                <th id="thGroup">Group</th>
               </tr>
             </thead>
             <tbody id="outputBody"></tbody>
@@ -1055,7 +964,7 @@
         leadership:"Leadership",
         authority:"Authority",
         dominance:"Dominance",
-        troop:"Troop Levels to Include",
+        troop:"Highest Troop Level",
         stackMode:"Stack Mode",
         guardsOnly:"Guardsmen Only",
         guardsSpecs:"Guardsmen + Specialists",
@@ -1066,7 +975,7 @@
         reset:"Reset",
         howTitle:"How to use:",
         how1:"1. Enter Leadership, Authority and Dominance.",
-        how2:"2. Tick the troop levels you want and choose stack mode.",
+        how2:"2. Pick troop level and stack mode.",
         how3:"3. Specialists are blocked unless Army Modernisation is completed.",
         how4:"4. Leadership is rounded down to the nearest 1,000 for the calculation basis.",
         modeNote:"Guardsmen + Specialists is only recommended when Army Modernisation is fully completed.",
@@ -1254,6 +1163,7 @@
       leadership: document.getElementById("leadership"),
       authority: document.getElementById("authority"),
       dominance: document.getElementById("dominance"),
+      troopLevel: document.getElementById("troopLevel"),
       calcBtn: document.getElementById("calcBtn"),
       resetBtn: document.getElementById("resetBtn"),
       heroCalcBtn: document.getElementById("heroCalcBtn"),
@@ -1325,89 +1235,6 @@
       tiers[tTop] = buildTierCountsFromBaseRanged(tTop, topBaseRanged);
 
       return tiers;
-    }
-
-    function getSelectedGuardTiers(){
-      return Array.from(document.querySelectorAll(".tierCheck:checked"))
-        .map(el => el.value)
-        .sort((a,b) => Number(b.slice(1)) - Number(a.slice(1)));
-    }
-
-    function getSelectedSpecialistTiers(){
-      return Array.from(document.querySelectorAll(".specTierCheck:checked"))
-        .map(el => el.value)
-        .sort((a,b) => Number(b.slice(1)) - Number(a.slice(1)));
-    }
-
-    function syncTierCheckboxState(){
-      const enabled = mode() === "specialists" && modernisation() === "yes";
-      document.querySelectorAll(".specialist-choice").forEach(label => {
-        const input = label.querySelector("input");
-        input.disabled = !enabled;
-        label.classList.toggle("disabled", !enabled);
-        if (!enabled) input.checked = false;
-      });
-    }
-
-    function calculateSelectedTroopCounts(L, guardTiers, specTiers){
-      if (!guardTiers.length) return null;
-
-      const ratioGuard = 1.84;
-      const ratioSpec = 1.03;
-      const highest = Number(guardTiers[0].slice(1));
-      const blueprint = [];
-
-      function guardTierFactor(tier){
-        const n = Number(tier.slice(1));
-        return Math.pow(ratioGuard, highest - n);
-      }
-
-      guardTiers.forEach(tier => {
-        const source = guardData[tier];
-        if (!source) return;
-        const f = guardTierFactor(tier);
-        ["Flyers","Mounted","Ranged","Melee"].forEach(type => {
-          if (!source[type]) return;
-          let multiple = f;
-          if (type === "Flyers") multiple = f / 20;
-          else if (type === "Mounted") multiple = f / 2;
-          blueprint.push({tier, group:"guardsmen", type, multiple});
-        });
-      });
-
-      specTiers.forEach(tier => {
-        const source = specialistData[tier];
-        if (!source) return;
-        const n = Number(tier.slice(1));
-        const guardFactor = Math.pow(ratioGuard, highest - n);
-        const f = guardFactor * ratioSpec;
-        ["Flyers","Mounted","Ranged","Melee"].forEach(type => {
-          if (!source[type]) return;
-          let multiple = f;
-          if (tier !== "S7" && type === "Flyers") multiple = f / 20;
-          else if (type === "Mounted") multiple = f / 2;
-          // S7 Flyers deliberately remain f (same count as S7 ranged/melee)
-          blueprint.push({tier, group:"specialists", type, multiple});
-        });
-      });
-
-      const denominator = blueprint.reduce((sum,r) => sum + r.multiple, 0);
-      if (denominator <= 0) return null;
-      const x = L / denominator;
-
-      const countsByTier = {};
-      blueprint.forEach(r => {
-        if (!countsByTier[r.tier]) countsByTier[r.tier] = {};
-        countsByTier[r.tier][r.type] = x * r.multiple;
-      });
-
-      return {x, countsByTier, highest, denominator};
-    }
-
-    function getSelectedMonsterTiers(){
-      return Array.from(document.querySelectorAll(".monsterTierCheck:checked"))
-        .map(el => el.value)
-        .sort((a,b) => Number(a.slice(1)) - Number(b.slice(1)));
     }
 
     function selectedMonsterLevels(high){
@@ -1606,56 +1433,76 @@
       const roundedL = roundedLeadership(actualLeadership);
       const A = Number(els.authority.value || 0);
       const D = Number(els.dominance.value || 0);
+      const high = Number(String(els.troopLevel.value).replace("G",""));
       const stackMode = mode();
-      const selectedGuards = getSelectedGuardTiers();
-      const selectedSpecs = stackMode === "specialists" ? getSelectedSpecialistTiers() : [];
-
-      if (!selectedGuards.length) {
-        return { blocked:true, message:"Select at least one Guardsmen tier." };
-      }
 
       if (stackMode === "specialists" && modernisation() !== "yes") {
         return { blocked:true, message:t("specBlocked") };
       }
 
-      if (selectedSpecs.some(t => Number(t.slice(1)) > Number(selectedGuards[0].slice(1)))) {
-        return { blocked:true, message:"A Specialist tier cannot be higher than your highest selected Guardsmen tier." };
+      if (stackMode === "specialists" && high < 7) {
+        return { blocked:true, message:t("specTierBlocked") };
       }
 
       let rows = [];
       let order = 1;
+      let tiersLabel = "";
       let highestFlyerTotal = 0;
       let advancedMsg = "";
 
-      const calc = calculateSelectedTroopCounts(roundedL, selectedGuards, selectedSpecs);
-      if (!calc) return { blocked:true, message:"Unable to calculate selected troop tiers." };
+      const baseCounts = tierCountsFromLeadership(roundedL, high);
 
-      const countsByTier = calc.countsByTier;
-      const tiersLabel = [...selectedGuards, ...selectedSpecs].join(" / ");
-      const high = calc.highest;
+      if (stackMode === "guards") {
+        const selected = ["G" + high, "G" + (high - 1), "G" + Math.max(3, high - 2)];
+        tiersLabel = selected.join(" / ");
 
-      selectedGuards.forEach(tier => {
-        order = addTierRows(rows, order, tier, guardData, countsByTier[tier] || {}, "guardsmen");
-      });
+        selected.forEach(tier => {
+          order = addTierRows(rows, order, tier, guardData, baseCounts[tier], "guardsmen");
+        });
 
-      selectedSpecs.forEach(tier => {
-        order = addTierRows(rows, order, tier, specialistData, countsByTier[tier] || {}, "specialists");
-      });
+        if (high === 6) {
+          applyProportionalAcrossAllGuardsmen(rows, roundedL);
+          rebalanceFlyerToRangedMelee(rows, "G5");
+          suppressFlyerBelowMounted(rows, "G6");
+          roundCounts(rows);
+          advancedMsg = t("advG6");
+        } else if (high === 5) {
+          applyProportionalAcrossAllGuardsmen(rows, roundedL);
+          rebalanceFlyerToRangedMelee(rows, "G5");
+          suppressFlyerBelowMounted(rows, "G5");
+          roundCounts(rows);
+          advancedMsg = t("advG5");
+        } else {
+          roundCounts(rows);
+        }
 
-      // Keep the ratios clean. We only floor at the final stage; no random leftover redistribution.
-      floorCounts(rows);
+        highestFlyerTotal = rows.find(r => r.tier === "G" + high && r.unitType === "Flyers")?.total || 0;
+      } else {
+        const optimized = optimizedSpecialistCounts(roundedL, high);
+        const plan = optimized.plan;
+        tiersLabel = plan.top + " / " + plan.spec + " / " + plan.low;
 
-      const topGuardTier = selectedGuards[0];
-      highestFlyerTotal = rows.find(r => r.tier === topGuardTier && r.unitType === "Flyers")?.total || 0;
-      advancedMsg = stackMode === "specialists"
-        ? "Selected Guardsmen + Specialists maximized by ratio"
-        : "Selected Guardsmen tiers maximized by ratio";
+        order = addTierRows(rows, order, plan.top, guardData, optimized.topCounts, "guardsmen");
+        order = addTierRows(rows, order, plan.spec, specialistData, optimized.specCounts, "specialists");
+        order = addTierRows(rows, order, plan.low, guardData, optimized.lowCounts, "guardsmen");
 
-      const monLevels = selectedMonsterLevels(high);
+        /*
+          Specialist mode is now optimized against the full leadership cap.
+          G7 has dedicated S7 logic because S7 Vulture uses normal S7 5,100 HP
+          and therefore follows S7 ranged/melee count, not flyer ÷20.
+          G8 and G9 retain the normal formula:
+          Specialist = Top Guardsmen × 1.03, Lower Guardsmen = Top Guardsmen × 1.84.
+        */
+        floorCounts(rows);
+        highestFlyerTotal = rows.find(r => r.tier === plan.top && r.unitType === "Flyers")?.total || 0;
+        advancedMsg = "Specialist leadership maximization applied";
+      }
+	        const monLevels = selectedMonsterLevels(high);
       const activeMonsterTotals = [];
 
       monLevels.forEach((level, idx) => {
         if (!monsterData[level]) return;
+
         const maxHP = Math.max(...monsterData[level].map(x => x[2]));
         let count = 0;
 
@@ -1676,8 +1523,16 @@
           const [name, unitType, hp] = item;
           const total = count * hp;
           if (count > 0 && total < highestFlyerTotal) {
-            const roundedCount = Math.round(count);
-            rows.push({order:order++,tier:level,name,unitType,count:roundedCount,hp,total:roundedCount*hp,group:"monsters"});
+            rows.push({
+              order: order++,
+              tier: level,
+              name,
+              unitType,
+              count: Math.round(count),
+              hp,
+              total: Math.round(count) * hp,
+              group: "monsters"
+            });
             activeMonsterTotals.push(total);
           }
         });
@@ -1691,13 +1546,23 @@
         const [name, hp] = item;
         const count = mercAllowed ? Math.max(Math.min(baseMerc, (mercCap - 1) / hp), 0) : 0;
         const roundedCount = Math.round(count);
+
         if (roundedCount > 0) {
-          rows.push({order:order++,tier:"Merc",name,unitType:"Mercenary",count:roundedCount,hp,total:roundedCount*hp,group:"mercs"});
+          rows.push({
+            order: order++,
+            tier: "Merc",
+            name,
+            unitType: "Mercenary",
+            count: roundedCount,
+            hp,
+            total: roundedCount * hp,
+            group: "mercs"
+          });
         }
       });
 
-      rows.sort((a,b) => a.count - b.count || a.order - b.order);
-      rows.forEach((r,i) => r.order = i + 1);
+      rows.sort((a, b) => a.count - b.count || a.order - b.order);
+      rows.forEach((r, i) => r.order = i + 1);
 
       return {
         blocked:false,
@@ -1729,79 +1594,6 @@
       els.roundedLeadership.textContent = "-";
       els.outputBody.innerHTML = "";
       els.messages.innerHTML = `<span class="status-pill bad">${msg}</span>`;
-    }
-
-    const sortState = {
-      key: "order",
-      direction: "asc"
-    };
-
-    function tierSortValue(tier){
-      const text = String(tier || "");
-      const match = text.match(/^([GSM])(\d+)$/i);
-      if (match) {
-        const groupRank = { G:3, S:2, M:1 }[match[1].toUpperCase()] || 0;
-        return (groupRank * 100) + Number(match[2]);
-      }
-      if (text.toLowerCase() === "merc") return -1;
-      return 0;
-    }
-
-    function compareRows(a, b, key){
-      if (key === "order" || key === "count" || key === "hp" || key === "total") {
-        return Number(a[key] || 0) - Number(b[key] || 0);
-      }
-
-      if (key === "tier") {
-        const tierDiff = tierSortValue(a.tier) - tierSortValue(b.tier);
-        if (tierDiff !== 0) return tierDiff;
-        return String(a.tier || "").localeCompare(String(b.tier || ""), undefined, {numeric:true, sensitivity:"base"});
-      }
-
-      return String(a[key] || "").localeCompare(
-        String(b[key] || ""),
-        undefined,
-        {numeric:true, sensitivity:"base"}
-      );
-    }
-
-    function sortRowsForDisplay(rows){
-      const sorted = [...rows];
-      sorted.sort((a,b) => {
-        const primary = compareRows(a,b,sortState.key);
-        if (primary !== 0) {
-          return sortState.direction === "asc" ? primary : -primary;
-        }
-
-        // Stable fallback to original calculated order.
-        return Number(a.order || 0) - Number(b.order || 0);
-      });
-      return sorted;
-    }
-
-    function updateSortIndicators(){
-      document.querySelectorAll("th.sortable").forEach(th => {
-        th.classList.remove("sort-asc","sort-desc");
-        if (th.dataset.sort === sortState.key) {
-          th.classList.add(sortState.direction === "asc" ? "sort-asc" : "sort-desc");
-        }
-      });
-    }
-
-    function handleHeaderSort(event){
-      const th = event.currentTarget;
-      const key = th.dataset.sort;
-      if (!key) return;
-
-      if (sortState.key === key) {
-        sortState.direction = sortState.direction === "asc" ? "desc" : "asc";
-      } else {
-        sortState.key = key;
-        sortState.direction = "asc";
-      }
-
-      updateSortIndicators();
-      render();
     }
 
     function render(){
@@ -1846,11 +1638,9 @@
         return matchesFilter && matchesSearch;
       });
 
-      const displayedRows = sortRowsForDisplay(filtered);
+      els.rowCount.textContent = String(filtered.length);
 
-      els.rowCount.textContent = String(displayedRows.length);
-
-      els.outputBody.innerHTML = displayedRows.map(r => `
+      els.outputBody.innerHTML = filtered.map(r => `
         <tr>
           <td>${r.order}</td>
           <td class="mono">${r.tier}</td>
@@ -1873,16 +1663,11 @@
       els.leadership.value = 100000;
       els.authority.value = 1000;
       els.dominance.value = 1000;
+      els.troopLevel.value = "G7";
       document.querySelector('input[name="stackMode"][value="guards"]').checked = true;
       document.querySelector('input[name="modernisation"][value="no"]').checked = true;
-      document.querySelectorAll(".tierCheck").forEach(el => el.checked = ["G5","G6","G7"].includes(el.value));
-      document.querySelectorAll(".specTierCheck").forEach(el => el.checked = false);\n      document.querySelectorAll(".monsterTierCheck").forEach(el => el.checked = false);
-      syncTierCheckboxState();
       els.searchUnit.value = "";
       syncFilters("all");
-      sortState.key = "order";
-      sortState.direction = "asc";
-      updateSortIndicators();
       document.getElementById("language").value = "en";
       applyLanguage();
       render();
@@ -1925,20 +1710,8 @@
 
       els.searchUnit.addEventListener("input", render);
 
-      document.querySelectorAll("th.sortable").forEach(th => {
-        th.addEventListener("click", handleHeaderSort);
-        th.setAttribute("title", "Click to sort. Click again to reverse.");
-      });
-
-      document.querySelectorAll('input[name="stackMode"]').forEach(el => el.addEventListener("change", () => {
-        syncTierCheckboxState();
-        render();
-      }));
-      document.querySelectorAll('input[name="modernisation"]').forEach(el => el.addEventListener("change", () => {
-        syncTierCheckboxState();
-        render();
-      }));
-      document.querySelectorAll(".tierCheck, .specTierCheck, .monsterTierCheck").forEach(el => el.addEventListener("change", render));
+      document.querySelectorAll('input[name="stackMode"]').forEach(el => el.addEventListener("change", render));
+      document.querySelectorAll('input[name="modernisation"]').forEach(el => el.addEventListener("change", render));
 
       document.getElementById("language").addEventListener("change", () => {
         applyLanguage();
@@ -1954,8 +1727,6 @@
 
     bindEvents();
     applyLanguage();
-    syncTierCheckboxState();
-    updateSortIndicators();
     render();
     handleToTopVisibility();
   </script>
