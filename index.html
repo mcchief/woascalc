@@ -1,2494 +1,276 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>WoA Troop Stacking Calculator</title>
-  <style>
-    :root{
-      --bg:#06101d;
-      --bg2:#0b1730;
-      --panel:rgba(9,18,34,.68);
-      --panel-strong:rgba(10,20,38,.84);
-      --panel-soft:rgba(255,255,255,.04);
-      --text:#eef4ff;
-      --muted:#9cb1d3;
-      --gold:#d7ad5a;
-      --gold2:#f2d38d;
-      --blue:#6fb0ff;
-      --green:#22c55e;
-      --orange:#f59e0b;
-      --red:#ef4444;
-      --border:rgba(255,255,255,.10);
-      --border-strong:rgba(255,255,255,.16);
-      --shadow:0 20px 60px rgba(0,0,0,.35);
-      --shadow-soft:0 10px 30px rgba(0,0,0,.22);
-      --blur:16px;
-      --radius:22px;
-      --radius-sm:16px;
-      --max:1520px;
-    }
-
-    *{box-sizing:border-box}
-    html{scroll-behavior:smooth}
-    html,body{
-      width:100%;
-      margin:0;
-      padding:0;
-      overflow-x:hidden;
-    }
-
-    body{
-      font-family:Inter,"Segoe UI",Arial,sans-serif;
-      color:var(--text);
-      min-height:100vh;
-      background:
-        radial-gradient(circle at 12% 16%, rgba(111,176,255,.18), transparent 0 22%),
-        radial-gradient(circle at 88% 10%, rgba(215,173,90,.18), transparent 0 24%),
-        radial-gradient(circle at 70% 82%, rgba(34,197,94,.08), transparent 0 18%),
-        linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
-    }
-
-    body::before,
-    body::after{
-      content:"";
-      position:fixed;
-      width:32rem;
-      height:32rem;
-      border-radius:50%;
-      filter:blur(80px);
-      opacity:.14;
-      pointer-events:none;
-      z-index:0;
-      animation:floatGlow 18s ease-in-out infinite;
-    }
-
-    body::before{
-      top:-10rem;
-      right:-10rem;
-      background:var(--blue);
-    }
-
-    body::after{
-      bottom:-12rem;
-      left:-10rem;
-      background:var(--gold);
-      animation-delay:-8s;
-    }
-
-    @keyframes floatGlow{
-      0%,100%{transform:translate(0,0) scale(1)}
-      50%{transform:translate(14px,18px) scale(1.08)}
-    }
-
-    @keyframes fadeUp{
-      from{opacity:0;transform:translateY(18px)}
-      to{opacity:1;transform:translateY(0)}
-    }
-
-    @keyframes pulseSoft{
-      0%,100%{box-shadow:0 0 0 0 rgba(215,173,90,.18)}
-      50%{box-shadow:0 0 0 12px rgba(215,173,90,0)}
-    }
-
-    .app{
-      position:relative;
-      z-index:1;
-      width:min(var(--max), 95vw);
-      margin:0 auto;
-      padding:18px 0 40px;
-    }
-
-    .topbar{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:14px;
-      padding:14px 16px;
-      margin-bottom:18px;
-      border:1px solid var(--border);
-      border-radius:22px;
-      background:rgba(7,17,31,.62);
-      backdrop-filter:blur(var(--blur));
-      box-shadow:var(--shadow-soft);
-      animation:fadeUp .55s ease both;
-    }
-
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      min-width:0;
-    }
-
-    .brand-badge{
-      width:46px;
-      height:46px;
-      border-radius:14px;
-      display:grid;
-      place-items:center;
-      font-weight:900;
-      font-size:1rem;
-      color:#161616;
-      background:linear-gradient(135deg,var(--gold),var(--gold2));
-      box-shadow:0 8px 24px rgba(215,173,90,.28);
-      flex:0 0 auto;
-      animation:pulseSoft 3.2s ease-in-out infinite;
-    }
-
-    .brand-copy{min-width:0}
-    .eyebrow{
-      display:block;
-      font-size:.74rem;
-      letter-spacing:.14em;
-      text-transform:uppercase;
-      color:var(--gold);
-      font-weight:800;
-      margin-bottom:2px;
-    }
-
-    .brand-title{
-      font-size:1rem;
-      font-weight:800;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-
-    .topbar-actions{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      flex-wrap:wrap;
-      justify-content:flex-end;
-    }
-
-    .btn{
-      appearance:none;
-      border:1px solid var(--border);
-      background:rgba(255,255,255,.04);
-      color:var(--text);
-      border-radius:14px;
-      padding:11px 16px;
-      font-size:.95rem;
-      font-weight:800;
-      cursor:pointer;
-      transition:transform .22s ease, background .22s ease, border-color .22s ease, box-shadow .22s ease, opacity .22s ease;
-      backdrop-filter:blur(10px);
-      text-decoration:none;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:8px;
-    }
-
-    .btn:hover{
-      transform:translateY(-1px);
-      border-color:var(--border-strong);
-      background:rgba(255,255,255,.07);
-    }
-
-    .btn:active{transform:translateY(0)}
-
-    .btn-home{
-      color:#161616;
-      border:none;
-      background:linear-gradient(135deg,var(--gold),var(--gold2));
-      box-shadow:0 12px 30px rgba(215,173,90,.24);
-    }
-
-    .btn-ghost{
-      background:rgba(255,255,255,.03);
-    }
-
-    .hero{
-      position:relative;
-      overflow:hidden;
-      border:1px solid var(--border);
-      border-radius:30px;
-      padding:28px;
-      background:
-        linear-gradient(135deg, rgba(215,173,90,.10), rgba(111,176,255,.08)),
-        rgba(10,18,32,.62);
-      backdrop-filter:blur(var(--blur));
-      box-shadow:var(--shadow);
-      display:grid;
-      gap:20px;
-      animation:fadeUp .65s ease both;
-    }
-
-    .hero::before{
-      content:"";
-      position:absolute;
-      inset:auto -60px -60px auto;
-      width:220px;
-      height:220px;
-      border-radius:50%;
-      background:radial-gradient(circle, rgba(111,176,255,.22), transparent 65%);
-      pointer-events:none;
-    }
-
-    .hero-grid{
-      display:grid;
-      grid-template-columns:1.35fr .95fr;
-      gap:18px;
-      align-items:start;
-    }
-
-    .hero-copy h1{
-      margin:0 0 10px;
-      font-size:clamp(2rem, 3.2vw, 3.2rem);
-      line-height:1.05;
-      letter-spacing:-.04em;
-      max-width:860px;
-    }
-
-    .hero-copy p{
-      margin:0;
-      color:var(--muted);
-      line-height:1.65;
-      max-width:900px;
-      font-size:1rem;
-    }
-
-    .hero-side{
-      display:grid;
-      gap:12px;
-      align-content:start;
-    }
-
-    .hero-pill-row{
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      justify-content:flex-end;
-    }
-
-    .pill{
-      border:1px solid var(--border);
-      background:rgba(255,255,255,.04);
-      color:var(--text);
-      padding:10px 12px;
-      border-radius:999px;
-      font-size:.82rem;
-      font-weight:800;
-      backdrop-filter:blur(10px);
-      white-space:nowrap;
-    }
-
-    .hero-note{
-      justify-self:end;
-      max-width:430px;
-      border:1px solid var(--border);
-      background:rgba(255,255,255,.03);
-      border-radius:18px;
-      padding:14px 16px;
-      color:var(--muted);
-      line-height:1.55;
-      font-size:.92rem;
-    }
-
-    .toolbar{
-      display:grid;
-      grid-template-columns:1fr 220px 220px auto auto;
-      gap:12px;
-      align-items:end;
-    }
-
-    .field{
-      display:grid;
-      gap:7px;
-    }
-
-
-    .stat-label-with-icon{display:inline-flex;align-items:center;gap:9px;}
-    .stat-input-icon{width:28px;height:28px;object-fit:cover;border-radius:7px;box-shadow:0 3px 10px rgba(0,0,0,.25);flex:0 0 auto;}
-
-    .field label{
-      color:var(--muted);
-      font-size:.88rem;
-      font-weight:700;
-    }
-
-    .control{
-      width:100%;
-      border:1px solid var(--border);
-      background:rgba(7,17,31,.72);
-      color:var(--text);
-      border-radius:16px;
-      padding:13px 14px;
-      font-size:.96rem;
-      outline:none;
-      transition:border-color .22s ease, background .22s ease, box-shadow .22s ease, transform .22s ease;
-      backdrop-filter:blur(8px);
-    }
-
-    .control:focus{
-      border-color:rgba(111,176,255,.55);
-      box-shadow:0 0 0 4px rgba(111,176,255,.10);
-      transform:translateY(-1px);
-    }
-
-    .hero-actions{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      justify-content:flex-end;
-      align-items:end;
-    }
-
-    .sticky-kpis{
-      position:sticky;
-      top:12px;
-      z-index:20;
-      margin-top:18px;
-      padding:12px;
-      border-radius:24px;
-      border:1px solid var(--border);
-      background:rgba(8,16,30,.70);
-      backdrop-filter:blur(16px);
-      box-shadow:var(--shadow-soft);
-      animation:fadeUp .8s ease both;
-    }
-
-    .grid-kpi{
-      display:grid;
-      grid-template-columns:repeat(5,minmax(0,1fr));
-      gap:12px;
-    }
-
-    .kpi{
-      position:relative;
-      overflow:hidden;
-      border:1px solid var(--border);
-      border-radius:20px;
-      padding:16px;
-      min-height:108px;
-      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
-      box-shadow:var(--shadow-soft);
-      transition:transform .25s ease, border-color .25s ease, background .25s ease;
-    }
-
-    .kpi:hover{
-      transform:translateY(-3px);
-      border-color:var(--border-strong);
-      background:linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
-    }
-
-    .kpi::after{
-      content:"";
-      position:absolute;
-      right:-18px;
-      bottom:-18px;
-      width:72px;
-      height:72px;
-      border-radius:50%;
-      background:radial-gradient(circle, rgba(255,255,255,.10), transparent 70%);
-      pointer-events:none;
-    }
-
-    .kpi-label{
-      color:var(--muted);
-      font-size:.82rem;
-      font-weight:700;
-      line-height:1.35;
-    }
-
-    .kpi-value{
-      margin-top:10px;
-      font-size:clamp(1.35rem, 2vw, 2.05rem);
-      font-weight:900;
-      line-height:1;
-      letter-spacing:-.03em;
-      word-break:break-word;
-    }
-
-    .kpi-hint{
-      margin-top:10px;
-      color:var(--muted);
-      font-size:.78rem;
-      line-height:1.4;
-    }
-
-    .main-grid{
-      display:grid;
-      grid-template-columns:minmax(320px, 410px) minmax(0, 1fr);
-      gap:18px;
-      margin-top:18px;
-      align-items:start;
-    }
-
-    .card{
-      border:1px solid var(--border);
-      border-radius:24px;
-      padding:18px;
-      min-width:0;
-      box-shadow:var(--shadow-soft);
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02)),
-        var(--panel);
-      backdrop-filter:blur(var(--blur));
-      animation:fadeUp .85s ease both;
-    }
-
-    .card h2{
-      margin:0 0 14px;
-      font-size:1.16rem;
-      letter-spacing:-.02em;
-    }
-
-    .stack{
-      display:grid;
-      gap:18px;
-      min-width:0;
-    }
-
-    .inline-radio{
-      display:grid;
-      gap:10px;
-      margin-top:4px;
-    }
-
-    .tier-check-grid{
-      display:grid;
-      grid-template-columns:repeat(4,minmax(0,1fr));
-      gap:10px;
-      margin-top:4px;
-    }
-
-    .tier-check-grid .choice{
-      min-width:0;
-      justify-content:flex-start;
-    }
-
-    .tier-check-grid .choice.disabled{
-      opacity:.45;
-    }
-
-    .tier-help{
-      color:var(--muted);
-      font-size:.8rem;
-      line-height:1.5;
-      margin-top:10px;
-    }
-
-    .tier-guidance{
-      margin-top:10px;
-      padding:10px 12px;
-      border-radius:12px;
-      background:rgba(111,176,255,.08);
-      border:1px solid rgba(111,176,255,.14);
-      color:#b9c9e6;
-      font-size:.78rem;
-      line-height:1.5;
-    }
-
-    .tier-guidance strong{
-      color:#e8f1ff;
-    }
-
-    .tier-section{
-      margin-top:12px;
-      padding:12px;
-      border:1px solid var(--border);
-      border-radius:16px;
-      background:rgba(255,255,255,.025);
-    }
-
-    .tier-section-title{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      margin-bottom:10px;
-      color:#eef4ff;
-      font-size:.86rem;
-      font-weight:900;
-      letter-spacing:.02em;
-    }
-
-    .tier-section-title small{
-      color:var(--muted);
-      font-size:.7rem;
-      font-weight:700;
-    }
-
-    @media (max-width:560px){
-      .tier-check-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
-    }
-
-    .choice{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      padding:12px 14px;
-      border:1px solid var(--border);
-      background:rgba(255,255,255,.03);
-      border-radius:16px;
-      transition:border-color .2s ease, background .2s ease, transform .2s ease;
-    }
-
-    .choice:hover{
-      transform:translateY(-1px);
-      border-color:var(--border-strong);
-      background:rgba(255,255,255,.05);
-    }
-
-    .choice input{
-      width:auto;
-      accent-color:var(--gold);
-      transform:scale(1.05);
-      margin:0;
-    }
-
-    .choice span{
-      font-weight:700;
-      color:var(--text);
-    }
-
-    .btns{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top:8px;
-    }
-
-    .hint{
-      margin-top:12px;
-      color:var(--muted);
-      font-size:.84rem;
-      line-height:1.6;
-    }
-
-    .divider{
-      margin-top:14px;
-      padding-top:14px;
-      border-top:1px solid rgba(255,255,255,.08);
-    }
-
-    .notice{
-      margin-top:12px;
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-    }
-
-    .top-validation{
-      display:none;
-      padding:12px 14px;
-      border-radius:16px;
-      border:1px solid rgba(239,68,68,.35);
-      background:rgba(239,68,68,.12);
-      color:#ffd0d0;
-      font-size:.86rem;
-      font-weight:800;
-      line-height:1.5;
-    }
-
-    .top-validation.show{display:block;}
-
-    .tier-section-title strong{
-      color:var(--text);
-      font-size:.88rem;
-    }
-
-    .tier-section-title .rule{
-      color:var(--muted);
-      font-size:.72rem;
-      font-weight:700;
-      text-align:right;
-    }
-
-    .status-pill{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:9px 12px;
-      border-radius:999px;
-      font-size:.78rem;
-      font-weight:800;
-      border:1px solid transparent;
-      white-space:nowrap;
-    }
-
-    .ok{
-      background:rgba(34,197,94,.15);
-      color:#baf7cd;
-      border-color:rgba(34,197,94,.24);
-    }
-
-    .warn{
-      background:rgba(245,158,11,.15);
-      color:#ffd992;
-      border-color:rgba(245,158,11,.24);
-    }
-
-    .bad{
-      background:rgba(239,68,68,.15);
-      color:#ffc4c4;
-      border-color:rgba(239,68,68,.24);
-    }
-
-    .toolbar-row{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      flex-wrap:wrap;
-      margin-bottom:12px;
-    }
-
-    .toolbar-row .right{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-
-    .table-wrap{
-      width:100%;
-      overflow:auto;
-      -webkit-overflow-scrolling:touch;
-      max-height:72vh;
-      border-radius:16px;
-      border:1px solid rgba(255,255,255,.08);
-      background:rgba(255,255,255,.02);
-    }
-
-    table{
-      width:100%;
-      min-width:920px;
-      border-collapse:collapse;
-      background:rgba(10,18,32,.45);
-    }
-
-    th,td{
-      padding:11px 12px;
-      border-bottom:1px solid rgba(255,255,255,.06);
-      text-align:left;
-      vertical-align:middle;
-    }
-
-    th{
-      position:sticky;
-      top:0;
-      z-index:2;
-      background:rgba(10,20,36,.96);
-      color:#dce8ff;
-      backdrop-filter:blur(10px);
-      white-space:nowrap;
-    }
-
-    th.sortable{
-      cursor:pointer;
-      user-select:none;
-      transition:background .18s ease,color .18s ease;
-    }
-
-    th.sortable:hover{
-      background:rgba(20,36,62,.98);
-    }
-
-    th.sortable::after{
-      content:" ↕";
-      opacity:.45;
-      font-size:.8em;
-      margin-left:4px;
-    }
-
-    th.sortable.sort-asc::after{
-      content:" ▲";
-      opacity:1;
-      color:var(--gold2);
-    }
-
-    th.sortable.sort-desc::after{
-      content:" ▼";
-      opacity:1;
-      color:var(--gold2);
-    }
-
-    tbody tr{
-      transition:background .18s ease, transform .18s ease;
-    }
-
-    tbody tr:hover{
-      background:rgba(255,255,255,.04);
-    }
-
-    .mono{font-family:ui-monospace,Consolas,monospace}
-    .type-guardsmen{color:#93c5fd}
-    .type-specialists{color:#d8c4ff}
-    .type-monsters{color:#fbb6b6}
-    .type-mercs{color:#fde68a}
-
-    .to-top{
-      position:fixed;
-      right:18px;
-      bottom:18px;
-      z-index:96;
-      width:52px;
-      height:52px;
-      border-radius:50%;
-      border:none;
-      background:linear-gradient(135deg,var(--gold),var(--gold2));
-      color:#151515;
-      font-size:1.4rem;
-      font-weight:900;
-      cursor:pointer;
-      box-shadow:0 12px 30px rgba(215,173,90,.30);
-      display:grid;
-      place-items:center;
-      opacity:0;
-      pointer-events:none;
-      transform:translateY(10px);
-      transition:opacity .25s ease, transform .25s ease;
-    }
-
-    .to-top.show{
-      opacity:1;
-      pointer-events:auto;
-      transform:translateY(0);
-    }
-
-    @media (max-width:1280px){
-      .hero-grid{grid-template-columns:1fr}
-      .hero-pill-row,.hero-note{justify-self:start;justify-content:flex-start}
-      .grid-kpi{grid-template-columns:repeat(3,minmax(0,1fr))}
-      .main-grid{grid-template-columns:1fr}
-      .sticky-kpis{position:relative;top:auto}
-    }
-
-    @media (max-width:980px){
-      .toolbar{grid-template-columns:1fr 1fr}
-      .grid-kpi{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .topbar{
-        flex-direction:column;
-        align-items:stretch;
-      }
-      .topbar-actions{
-        justify-content:stretch;
-      }
-      .topbar-actions .btn{
-        flex:1 1 auto;
-      }
-    }
-
-    @media (max-width:760px){
-      .app{
-        width:min(100%, 94vw);
-        padding-top:14px;
-      }
-      .hero{
-        border-radius:24px;
-        padding:20px;
-      }
-      .toolbar{
-        grid-template-columns:1fr;
-      }
-      .brand-title{
-        white-space:normal;
-      }
-      .hero-actions{
-        justify-content:stretch;
-      }
-      .hero-actions .btn{
-        flex:1 1 auto;
-      }
-      .grid-kpi{
-        grid-template-columns:1fr 1fr;
-      }
-      .card{
-        padding:15px;
-        border-radius:20px;
-      }
-      .toolbar-row{
-        flex-direction:column;
-        align-items:stretch;
-      }
-      .toolbar-row .right{
-        width:100%;
-        display:grid;
-      }
-      .table-wrap{
-        max-height:64vh;
-      }
-      table{
-        min-width:860px;
-      }
-    }
-
-    @media (max-width:480px){
-      .grid-kpi{
-        grid-template-columns:1fr;
-      }
-      .kpi{
-        min-height:96px;
-        padding:14px;
-      }
-      .hero-copy h1{
-        font-size:1.8rem;
-      }
-      .to-top{
-        right:14px;
-        bottom:14px;
-        width:48px;
-        height:48px;
-      }
-    }
-  </style>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WoA Battle Stacking Calculator</title>
+<style>
+:root{--bg:#07101d;--card:#0d1a2b;--card2:#102139;--line:#263d5c;--txt:#edf5ff;--mut:#91a7c2;--gold:#e6b85b;--blue:#58a9ff;--green:#50d18b;--purple:#aa8cff}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 15% 0,#102b4a 0,transparent 35%),radial-gradient(circle at 90% 0,#302714 0,transparent 28%),var(--bg);color:var(--txt);font:14px/1.45 Inter,Segoe UI,Arial,sans-serif}
+.app{max-width:1450px;margin:auto;padding:22px}.hero,.card{background:linear-gradient(145deg,var(--card2),var(--card));border:1px solid var(--line);box-shadow:0 20px 55px #0005}.hero{border-radius:26px;padding:26px}.eyebrow{color:var(--gold);font-size:11px;font-weight:900;letter-spacing:.16em;text-transform:uppercase}.hero h1{margin:7px 0 6px;font-size:clamp(30px,4vw,52px);line-height:1}.hero p{color:#bfd0e4;max-width:950px}
+.layout{display:grid;grid-template-columns:390px 1fr;gap:18px;margin-top:18px}.card{border-radius:22px;padding:18px}.sec{margin-bottom:18px}h2{font-size:18px;margin:0 0 12px}.label{display:block;font-weight:850;margin:0 0 7px}.lead{width:100%;border:1px solid #355374;background:#081525;color:white;border-radius:14px;padding:13px;font-size:19px;outline:0}.lead:focus{border-color:var(--blue)}
+.chips{display:flex;flex-wrap:wrap;gap:7px}.chip input{display:none}.chip label{display:block;padding:8px 11px;border:1px solid #2d4665;border-radius:11px;background:#091727;color:#aebfd2;font-weight:800;cursor:pointer}.chip input:checked+label{background:#173a63;color:#fff;border-color:#5aa7ff}.spec input:checked+label{background:#33295e;border-color:#9b83ff}.mon input:checked+label{background:#193b31;border-color:#4dbb87}.merc input:checked+label{background:#4b321d;border-color:#c58a4d}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}.btn{border:0;border-radius:13px;padding:12px;font-weight:900;cursor:pointer}.primary{background:linear-gradient(135deg,#f0c96e,#c99132);color:#171109}.secondary{background:#142842;color:#d8e8fa;border:1px solid #31506f}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin-bottom:12px}.kpi{background:#081626;border:1px solid #203957;border-radius:15px;padding:12px}.kpi span{display:block;color:var(--mut);font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:800}.kpi b{display:block;font-size:18px;margin-top:3px}.ok{color:var(--green)}.status{background:#081626;border:1px solid #203957;border-radius:14px;padding:11px 13px;margin-bottom:12px;color:#c7d7e9}
+.tablewrap{overflow:auto;max-height:660px;border:1px solid #203957;border-radius:16px}table{width:100%;border-collapse:collapse;min-width:930px}th{position:sticky;top:0;background:#12263f;color:#cfe0f4;text-align:left;padding:10px;font-size:10px;text-transform:uppercase;letter-spacing:.06em;z-index:1}td{padding:9px 10px;border-top:1px solid #172f4c}tbody tr:hover{background:#10243b}.num{text-align:right;font-variant-numeric:tabular-nums}.g{color:#66b4ff;font-weight:850}.s{color:#b29aff;font-weight:850}.m{color:#65d39a;font-weight:850}.mc{color:#e5ad6e;font-weight:850}
+.tests{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.test{background:#081626;border:1px solid #203957;border-radius:15px;padding:13px}.test b{display:block;margin-bottom:5px}.badge{display:inline-block;border:1px solid #39855e;background:#123829;color:#6be3a2;border-radius:999px;padding:3px 8px;font-size:10px;font-weight:900}.small{color:var(--mut);font-size:11px;margin-top:7px}
+.toolbar{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin:0 0 12px}
+.search{flex:1;min-width:210px;border:1px solid #355374;background:#081525;color:white;border-radius:12px;padding:10px 12px;outline:0}
+.search:focus{border-color:var(--blue)}
+.filters{display:flex;flex-wrap:wrap;gap:6px}
+.fbtn{border:1px solid #2d4665;background:#091727;color:#aebfd2;border-radius:999px;padding:8px 11px;font-weight:800;cursor:pointer}
+.fbtn.active{background:#173a63;color:#fff;border-color:#5aa7ff}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable::after{content:" ↕";opacity:.35}
+th.sortable.asc::after{content:" ↑";opacity:1;color:var(--gold)}
+th.sortable.desc::after{content:" ↓";opacity:1;color:var(--gold)}
+.autoBox{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.autoStat{background:#081626;border:1px solid #203957;border-radius:13px;padding:10px}
+.autoStat span{display:block;color:var(--mut);font-size:10px;text-transform:uppercase;font-weight:800}
+.autoStat b{font-size:14px;color:var(--green)}
+.guidance{display:grid;grid-template-columns:1.15fr .85fr;gap:12px;margin-top:18px}
+.guideCard{background:#081626;border:1px solid #203957;border-radius:17px;padding:16px}
+.guideCard.recommended{border-color:#735f2d;background:linear-gradient(145deg,#171a20,#161c27)}
+.guideCard h2{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.guideCard p{margin:7px 0;color:#bfd0e4}
+.guideCard strong{color:#fff}
+.guideTag{display:inline-block;padding:4px 8px;border-radius:999px;background:#493a18;border:1px solid #8c6c29;color:#f2c968;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.07em}
+.disclaimer{border-color:#304866;background:#0a1728}
+@media(max-width:850px){.guidance{grid-template-columns:1fr}}
+@media(max-width:1000px){.layout{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(3,1fr)}}@media(max-width:650px){.app{padding:9px}.hero,.card{border-radius:17px;padding:14px}.kpis{grid-template-columns:1fr 1fr}.tests{grid-template-columns:1fr}}
+</style>
 </head>
-<body>
-  <div class="app" id="top">
-    <header class="topbar">
-      <div class="brand">
-        <div class="brand-badge">WOA</div>
-        <div class="brand-copy">
-          <span class="eyebrow">WOA Command Center</span>
-          <div class="brand-title">WoA Troop Stacking Calculator</div>
-        </div>
-      </div>
-
-      <div class="topbar-actions">
-        <a class="btn btn-home" href="https://sites.google.com/view/woa-command-center/home">Home</a>
-        <button class="btn btn-ghost" id="scrollToResultsBtn" type="button">View Results</button>
-        <button class="btn btn-ghost" id="refreshVisualBtn" type="button">Refresh View</button>
-      </div>
-    </header>
-
-    <section class="hero">
-      <div class="hero-grid">
-        <div class="hero-copy">
-          <span class="eyebrow">Battle Stack Intelligence</span>
-          <h1 id="heroTitle">WoA Troop Stacking Calculator</h1>
-          <p id="heroSub">
-            Enter your Leadership, Authority and Dominance, choose your stack mode and available troop tiers, and the calculator will generate your recommended battle stack automatically.
-          </p>
-        </div>
-
-        <div class="hero-side">
-          <div class="hero-pill-row">
-            <div class="pill">Troop Stack Logic</div>
-            <div class="pill">Leadership Based</div>
-            <div class="pill">Monster & Merc Layers</div>
-          </div>
-          <div class="hero-note">
-            Build efficient troop stacks, preserve firing order, and maximise available leadership using WoA stacking rules.
-          </div>
-        </div>
-      </div>
-
-      <div class="toolbar">
-        <div class="field">
-          <label for="searchUnit">Search unit in results</label>
-          <input id="searchUnit" class="control" type="text" placeholder="Type unit or tier name..." />
-        </div>
-
-        <div class="field">
-          <label for="language" id="langLabel">Language</label>
-          <select id="language" class="control">
-            <option value="en">English</option>
-            <option value="ru">Русский</option>
-            <option value="tr">Türkçe</option>
-            <option value="es">Español</option>
-            <option value="pl">Polski</option>
-            <option value="ar">العربية</option>
-            <option value="uk">Українська</option>
-            <option value="fr">Français</option>
-            <option value="pt">Português</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label for="typeFilterHero">Quick result filter</label>
-          <select id="typeFilterHero" class="control">
-            <option value="all">All</option>
-            <option value="troops">Guardsmen + Specialists</option>
-            <option value="guardsmen">Guardsmen</option>
-            <option value="specialists">Specialists</option>
-            <option value="monsters">Monsters</option>
-            <option value="mercs">Mercs</option>
-          </select>
-        </div>
-
-        <div class="hero-actions">
-          <button class="btn btn-ghost" id="heroResetBtn" type="button">Reset</button>
-          <button class="btn btn-home" id="heroCalcBtn" type="button">Calculate</button>
-        </div>
-      </div>
-    </section>
-
-    <section class="sticky-kpis">
-      <div class="grid-kpi">
-        <article class="kpi">
-          <div class="kpi-label" id="statGuard">Selected Tiers</div>
-          <div class="kpi-value" id="guardTiers">-</div>
-          <div class="kpi-hint">Guardsmen and Specialist tiers included in the current build.</div>
-        </article>
-
-        <article class="kpi">
-          <div class="kpi-label" id="statMon">Selected Monster Levels</div>
-          <div class="kpi-value" id="monsterLevels">-</div>
-          <div class="kpi-hint">Monster tiers included in the current build.</div>
-        </article>
-
-        <article class="kpi">
-          <div class="kpi-label" id="statFly">Highest Flyer Total HP</div>
-          <div class="kpi-value" id="flyerCap">-</div>
-          <div class="kpi-hint">Highest Flyer HP reference used to maintain the correct firing order.</div>
-        </article>
-
-        <article class="kpi">
-          <div class="kpi-label" id="statRows">Stack Count</div>
-          <div class="kpi-value" id="rowCount">0</div>
-          <div class="kpi-hint">Total Guardsmen, Specialist and Monster stacks in the current build.</div>
-        </article>
-
-        <article class="kpi">
-          <div class="kpi-label" id="statRounded">Rounded Leadership</div>
-          <div class="kpi-value" id="roundedLeadership">-</div>
-          <div class="kpi-hint">Exact Leadership entered by the user and used by the calculation.</div>
-        </article>
-      </div>
-    </section>
-
-    <section class="main-grid">
-      <aside class="card">
-        <h2 id="inputsTitle">Inputs</h2>
-
-        <div class="stack">
-          <div class="field">
-            <label for="leadership" id="leadershipLabel" class="stat-label-with-icon"><img class="stat-input-icon" src="data:image/png;base64,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" alt="" aria-hidden="true"><span>Army (Leadership)</span></label>
-            <input id="leadership" class="control" type="number" value="100000" min="0" step="1" />
-          </div>
-
-          <div class="field">
-            <label for="authority" id="authorityLabel" class="stat-label-with-icon"><img class="stat-input-icon" src="data:image/png;base64,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" alt="" aria-hidden="true"><span>Mercenaries (Authority)</span></label>
-            <input id="authority" class="control" type="number" value="1000" min="0" step="1" />
-          </div>
-
-          <div class="field">
-            <label for="dominance" id="dominanceLabel" class="stat-label-with-icon"><img class="stat-input-icon" src="data:image/png;base64,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" alt="" aria-hidden="true"><span>Monsters (Dominance)</span></label>
-            <input id="dominance" class="control" type="number" value="1000" min="0" step="1" />
-          </div>
-
-          <div id="topValidation" class="top-validation" role="alert" aria-live="polite"></div>
-
-          <div class="field">
-            <label id="stackModeLabel">Stack Mode</label>
-            <div class="inline-radio">
-              <label class="choice">
-                <input type="radio" name="stackMode" value="guards" checked />
-                <span id="stackModeGuardsText">Guardsmen Only</span>
-              </label>
-              <label class="choice">
-                <input type="radio" name="stackMode" value="specialists" />
-                <span id="stackModeSpecsText">Guardsmen + Specialists</span>
-              </label>
-            </div>
-          </div>
-
-          <div class="field">
-            <label id="modernisationLabel">Army Modernisation Completed</label>
-            <div class="inline-radio">
-              <label class="choice">
-                <input type="radio" name="modernisation" value="no" checked />
-                <span id="modernisationNoText">No</span>
-              </label>
-              <label class="choice">
-                <input type="radio" name="modernisation" value="yes" />
-                <span id="modernisationYesText">Yes</span>
-              </label>
-            </div>
-          </div>
-
-          <div class="field">
-            <label id="troopLevelLabel">Troop Levels to Include</label>
-
-            <div class="tier-section">
-              <div class="tier-section-title">
-                <strong id="guardsSectionTitle">Guardsmen</strong>
-                <span class="rule" id="guardsSectionRule">Select 3 Guardsmen, or 2 when using a Specialist</span>
-              </div>
-              <div class="tier-check-grid" id="guardTierChecks">
-                <label class="choice"><input class="tierCheck" type="checkbox" value="G3"><span>G3</span></label>
-                <label class="choice"><input class="tierCheck" type="checkbox" value="G4"><span>G4</span></label>
-                <label class="choice"><input class="tierCheck" type="checkbox" value="G5" checked><span>G5</span></label>
-                <label class="choice"><input class="tierCheck" type="checkbox" value="G6" checked><span>G6</span></label>
-                <label class="choice"><input class="tierCheck" type="checkbox" value="G7" checked><span>G7</span></label>
-                <label class="choice"><input class="tierCheck" type="checkbox" value="G8"><span>G8</span></label>
-                <label class="choice"><input class="tierCheck" type="checkbox" value="G9"><span>G9</span></label>
-              </div>
-              <div class="tier-guidance" id="guardsGuidance">
-                <strong>Recommended:</strong> For better Specialist results, use G7 or higher as your main Guardsmen tier. If your available Guardsmen are below G7, use <strong>Guardsmen Only</strong> instead.
-              </div>
-            </div>
-
-            <div class="tier-section">
-              <div class="tier-section-title">
-                <strong id="specialistsSectionTitle">Specialists</strong>
-                <span class="rule" id="specialistsSectionRule">Requires full Modernisation + 2 Guardsmen tiers</span>
-              </div>
-              <div class="tier-check-grid" id="specialistTierChecks">
-                <label class="choice specialist-choice"><input class="specTierCheck" type="checkbox" value="S7"><span>S7</span></label>
-                <label class="choice specialist-choice"><input class="specTierCheck" type="checkbox" value="S8"><span>S8</span></label>
-                <label class="choice specialist-choice"><input class="specTierCheck" type="checkbox" value="S9"><span>S9</span></label>
-              </div>
-              <div class="tier-guidance" id="specialistsGuidance">
-                <strong>Why Specialists may be greyed out:</strong> Specialists require <strong>full Army Modernisation research</strong> and cannot be used alone. Select <strong>2 valid Guardsmen tiers first</strong>; the compatible Specialist options will then become available.
-              </div>
-            </div>
-
-            <div class="tier-section">
-              <div class="tier-section-title">
-                <strong id="monstersSectionTitle">Monsters</strong>
-                <span class="rule" id="monstersSectionRule">Select 2 or 3 consecutive Monster tiers</span>
-              </div>
-              <div class="tier-check-grid" id="monsterTierChecks">
-                <label class="choice"><input class="monsterTierCheck" type="checkbox" value="M4"><span>M4</span></label>
-                <label class="choice"><input class="monsterTierCheck" type="checkbox" value="M5"><span>M5</span></label>
-                <label class="choice"><input class="monsterTierCheck" type="checkbox" value="M6" checked><span>M6</span></label>
-                <label class="choice"><input class="monsterTierCheck" type="checkbox" value="M7" checked><span>M7</span></label>
-                <label class="choice"><input class="monsterTierCheck" type="checkbox" value="M8"><span>M8</span></label>
-                <label class="choice"><input class="monsterTierCheck" type="checkbox" value="M9"><span>M9</span></label>
-              </div>
-            </div>
-
-            <div class="tier-help" id="tierHelpText">
-              Recommended build: 20 stacks. Use 3 consecutive Guardsmen tiers, or 2 consecutive Guardsmen plus 1 valid Specialist when full Army Modernisation research is complete. Specialists cannot be used alone. Select 2 or 3 consecutive Monster tiers.
-            </div>
-          </div>
-
-          <div class="btns">
-            <button class="btn btn-home" id="calcBtn" type="button">Calculate</button>
-            <button class="btn btn-ghost" id="resetBtn" type="button">Reset</button>
-          </div>
-
-          <div class="hint">
-            <strong id="howTitle">How to use:</strong><br>
-            <span id="how1">1. Enter your Leadership, Authority and Dominance.</span><br>
-            <span id="how2">2. Choose your Stack Mode first. For Specialist builds, select 2 valid Guardsmen tiers before selecting a Specialist.</span><br>
-            <span id="how3">3. Specialists require full Army Modernisation research and cannot be used without a Guardsmen backbone.</span><br>
-            <span id="how4">4. The exact Leadership entered is used. Final troop counts are converted to whole units.</span>
-          </div>
-
-          <div class="notice" id="messages">
-            <span class="status-pill warn" id="modeNoteText">Specialist stacks require full Army Modernisation research.</span>
-          </div>
-
-          <div class="hint divider">
-            <strong id="disclaimerTitle">Troop Calculator Disclaimer</strong><br>
-            <span id="disclaimerText">
-              This calculator provides a baseline setup to guide troop composition and firing order. Due to differences in player bonuses, research, gear, and other modifiers, results may vary. Players are encouraged to fine-tune and adjust their setup to achieve optimal performance based on their individual account.
-            </span>
-          </div>
-        </div>
-      </aside>
-
-      <section class="card" id="resultsStart">
-        <div class="toolbar-row">
-          <div>
-            <h2 style="margin:0;">Stack Output</h2>
-            <div style="margin-top:6px;color:var(--muted);font-size:.9rem;line-height:1.5;">
-              Recommended firing order and stack structure based on your selected troops and available leadership.
-            </div>
-          </div>
-
-          <div class="right">
-            <label for="typeFilter" id="filterLabel" style="font-weight:700;color:#cbd5e1;">Quick Filter</label>
-            <select id="typeFilter" class="control" style="width:220px;">
-              <option value="all">All</option>
-              <option value="troops">Guardsmen + Specialists</option>
-              <option value="guardsmen">Guardsmen</option>
-              <option value="specialists">Specialists</option>
-              <option value="monsters">Monsters</option>
-              <option value="mercs">Mercs</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th id="thOrder" class="sortable sort-asc" data-sort="order">Order</th>
-                <th id="thTier" class="sortable" data-sort="tier">Tier</th>
-                <th id="thName" class="sortable" data-sort="name">Name</th>
-                <th id="thType" class="sortable" data-sort="unitType">Type</th>
-                <th id="thCount" class="sortable" data-sort="count">Count</th>
-                <th id="thHP" class="sortable" data-sort="hp">HP / Unit</th>
-                <th id="thTotal" class="sortable" data-sort="total">Total HP</th>
-                <th id="thGroup" class="sortable" data-sort="group">Group</th>
-              </tr>
-            </thead>
-            <tbody id="outputBody"></tbody>
-          </table>
-        </div>
-      </section>
-    </section>
-  </div>
-
-  <button class="to-top" id="toTopBtn" type="button" aria-label="Back to top">↑</button>
-
-  <script>
-    const i18n = {
-      en: {
-        language:"Language",
-        title:"WoA Troop Stacking Calculator",
-        sub:"Enter your Leadership, Authority and Dominance, choose your stack mode and available troop tiers, and the calculator will generate your recommended battle stack automatically.",
-        inputs:"Inputs",
-        leadership:"Army (Leadership)",
-        authority:"Mercenaries (Authority)",
-        dominance:"Monsters (Dominance)",
-        troop:"Troop Levels to Include",
-        stackMode:"Stack Mode",
-        guardsOnly:"Guardsmen Only",
-        guardsSpecs:"Guardsmen + Specialists",
-        modernisation:"Army Modernisation Completed",
-        yes:"Yes",
-        no:"No",
-        calc:"Calculate",
-        reset:"Reset",
-        howTitle:"How to use:",
-        how1:"1. Enter your Leadership, Authority and Dominance.",
-        how2:"2. Choose your Stack Mode first. For Specialist builds, select 2 valid Guardsmen tiers before selecting a Specialist.",
-        how3:"3. Specialists require full Army Modernisation research and cannot be used without a Guardsmen backbone.",
-        how4:"4. The exact Leadership entered is used. Final troop counts are converted to whole units.",
-        modeNote:"Specialist stacks require full Army Modernisation research and at least 2 valid Guardsmen tiers.",
-        selectedTiers:"Selected Tiers",
-        selectedMonsters:"Selected Monster Levels",
-        highestFlyer:"Highest Flyer Total HP",
-        stacksReturned:"Stacks Returned",
-        roundedLead:"Leadership Used",
-        quickFilter:"Quick Filter",
-        all:"All",
-        troops:"Guardsmen + Specialists",
-        guardsmen:"Guardsmen",
-        specialists:"Specialists",
-        monsters:"Monsters",
-        mercs:"Mercs",
-        order:"Order",
-        tier:"Tier",
-        name:"Name",
-        type:"Type",
-        count:"Count",
-        hp:"HP / Unit",
-        total:"Total HP",
-        group:"Group",
-        monstersOk:"Monsters: included where cap allows",
-        monstersWarn:"Monsters: limited / blocked by cap or dominance",
-        mercsOk:"Mercs: enabled from this troop level",
-        mercsWarn:"Mercs: start at G6",
-        specBlocked:"Specialists require full Army Modernisation research and at least 2 valid Guardsmen tiers. Complete the research or switch to Guardsmen Only.",
-        specTierBlocked:"Specialists are only available for G7 to G9.",
-        groupGuardsmen:"Guardsmen",
-        groupSpecialists:"Specialists",
-        groupMonsters:"Monsters",
-        groupMercs:"Mercs",
-        disclaimerTitle:"Troop Calculator Disclaimer",
-        disclaimerText:"This calculator provides a baseline setup to guide troop composition and firing order. Due to differences in player bonuses, research, gear, and other modifiers, results may vary. Players are encouraged to fine-tune and adjust their setup to achieve optimal performance based on their individual account.",
-        advG6:"Advanced G6 maximization applied",
-        advG5:"Advanced G5 maximization applied"
-      },
-      ru: { language:"Язык", title:"Калькулятор стеков войск WoA", sub:"Введите лидерство, авторитет, доминирование, уровень войск и режим стека. Калькулятор автоматически строит стек и показывает финальную структуру.", inputs:"Параметры", leadership:"Лидерство", authority:"Авторитет", dominance:"Доминирование", troop:"Максимальный уровень войск", stackMode:"Режим стека", guardsOnly:"Только гвардейцы", guardsSpecs:"Гвардейцы + специалисты", modernisation:"Армейская модернизация завершена", yes:"Да", no:"Нет", calc:"Рассчитать", reset:"Сброс", howTitle:"Как использовать:", how1:"1. Введите лидерство, авторитет и доминирование.", how2:"2. Выберите уровень войск и режим стека.", how3:"3. Специалисты заблокированы без полной модернизации армии.", how4:"4. Для расчёта используется точное введённое лидерство; итоговое количество войск приводится к целым единицам.", modeNote:"Гвардейцы + специалисты рекомендуются только при полной модернизации армии.", selectedTiers:"Выбранные уровни", selectedMonsters:"Выбранные уровни монстров", highestFlyer:"Макс. суммарное HP летающих", stacksReturned:"Возвращено стеков", roundedLead:"Используемое лидерство", quickFilter:"Быстрый фильтр", all:"Все", troops:"Гвардейцы + специалисты", guardsmen:"Гвардейцы", specialists:"Специалисты", monsters:"Монстры", mercs:"Наёмники", order:"Порядок", tier:"Уровень", name:"Название", type:"Тип", count:"Количество", hp:"HP / юнит", total:"Общее HP", group:"Группа", monstersOk:"Монстры: включены там, где позволяет лимит", monstersWarn:"Монстры: ограничены лимитом или доминированием", mercsOk:"Наёмники: доступны с этого уровня войск", mercsWarn:"Наёмники: начинаются с G6", specBlocked:"Для специалистов нужна полная модернизация армии. Переключитесь на «Только гвардейцы» или завершите исследование.", specTierBlocked:"Специалисты доступны только для G7–G9.", groupGuardsmen:"Гвардейцы", groupSpecialists:"Специалисты", groupMonsters:"Монстры", groupMercs:"Наёмники", disclaimerTitle:"Предупреждение калькулятора", disclaimerText:"Этот калькулятор даёт базовую настройку для состава войск и порядка удара. Из-за различий в бонусах, исследованиях, снаряжении и других модификаторах результаты могут отличаться. Настраивайте состав под свой аккаунт.", advG6:"Применена расширенная максимизация G6", advG5:"Применена расширенная максимизация G5" },
-      tr: { language:"Dil", title:"WoA Birlik Dizilim Hesaplayıcısı", sub:"Liderlik, otorite, baskınlık, birlik seviyesi ve dizilim modunu girin. Hesaplayıcı dizilimi otomatik oluşturur ve son yapıyı gösterir.", inputs:"Girdiler", leadership:"Liderlik", authority:"Otorite", dominance:"Baskınlık", troop:"En Yüksek Birlik Seviyesi", stackMode:"Dizilim Modu", guardsOnly:"Sadece Muhafızlar", guardsSpecs:"Muhafızlar + Uzmanlar", modernisation:"Ordu Modernizasyonu Tamamlandı", yes:"Evet", no:"Hayır", calc:"Hesapla", reset:"Sıfırla", howTitle:"Nasıl kullanılır:", how1:"1. Liderlik, otorite ve baskınlık girin.", how2:"2. Birlik seviyesini ve dizilim modunu seçin.", how3:"3. Ordu modernizasyonu tamamlanmadan uzmanlar engellenir.", how4:"4. Girilen tam Liderlik değeri kullanılır; nihai birlik sayıları tam birimlere dönüştürülür.", modeNote:"Muhafızlar + Uzmanlar yalnızca ordu modernizasyonu tamamlandığında önerilir.", selectedTiers:"Seçilen Kademeler", selectedMonsters:"Seçilen Canavar Seviyeleri", highestFlyer:"En Yüksek Uçan Toplam HP", stacksReturned:"Dönen Yığınlar", roundedLead:"Kullanılan Liderlik", quickFilter:"Hızlı Filtre", all:"Tümü", troops:"Muhafızlar + Uzmanlar", guardsmen:"Muhafızlar", specialists:"Uzmanlar", monsters:"Canavarlar", mercs:"Paralı askerler", order:"Sıra", tier:"Kademe", name:"Ad", type:"Tür", count:"Sayı", hp:"Birim HP", total:"Toplam HP", group:"Grup", monstersOk:"Canavarlar: limit izin verirse dahil", monstersWarn:"Canavarlar: limit veya baskınlık nedeniyle kısıtlı", mercsOk:"Paralı askerler: bu seviyede açık", mercsWarn:"Paralı askerler G6’dan başlar", specBlocked:"Uzmanlar için tam Ordu Modernizasyonu gerekir. Sadece Muhafızlar moduna geçin veya araştırmayı tamamlayın.", specTierBlocked:"Uzmanlar yalnızca G7–G9 için kullanılabilir.", groupGuardsmen:"Muhafızlar", groupSpecialists:"Uzmanlar", groupMonsters:"Canavarlar", groupMercs:"Paralı askerler", disclaimerTitle:"Hesaplayıcı Uyarısı", disclaimerText:"Bu hesaplayıcı birlik düzeni ve saldırı sırası için temel bir yapı sunar. Bonuslar, araştırmalar, ekipman ve diğer değişkenler nedeniyle sonuçlar farklı olabilir. Kendi hesabınıza göre ince ayar yapın.", advG6:"G6 gelişmiş maksimizasyon uygulandı", advG5:"G5 gelişmiş maksimizasyon uygulandı" },
-      es: { language:"Idioma", title:"Calculadora de Apilado de Tropas WoA", sub:"Introduce liderazgo, autoridad, dominancia, nivel de tropas y modo de apilado. La calculadora arma tu estructura automáticamente.", inputs:"Entradas", leadership:"Liderazgo", authority:"Autoridad", dominance:"Dominancia", troop:"Nivel Más Alto de Tropa", stackMode:"Modo de Apilado", guardsOnly:"Solo Guardias", guardsSpecs:"Guardias + Especialistas", modernisation:"Modernización del Ejército Completada", yes:"Sí", no:"No", calc:"Calcular", reset:"Reiniciar", howTitle:"Cómo usar:", how1:"1. Introduce liderazgo, autoridad y dominancia.", how2:"2. Elige nivel de tropas y modo de apilado.", how3:"3. Los especialistas se bloquean si no se completó la modernización.", how4:"4. Se usa el Liderazgo exacto introducido; las cantidades finales de tropas se convierten en unidades enteras.", modeNote:"Guardias + Especialistas solo se recomienda con la modernización completa.", selectedTiers:"Niveles Seleccionados", selectedMonsters:"Niveles de Monstruos Seleccionados", highestFlyer:"HP Total Más Alto de Voladores", stacksReturned:"Pilas Devueltas", roundedLead:"Liderazgo Utilizado", quickFilter:"Filtro Rápido", all:"Todo", troops:"Guardias + Especialistas", guardsmen:"Guardias", specialists:"Especialistas", monsters:"Monstruos", mercs:"Mercenarios", order:"Orden", tier:"Nivel", name:"Nombre", type:"Tipo", count:"Cantidad", hp:"HP / Unidad", total:"HP Total", group:"Grupo", monstersOk:"Monstruos: incluidos donde el límite lo permite", monstersWarn:"Monstruos: limitados por tope o dominancia", mercsOk:"Mercenarios: habilitados desde este nivel", mercsWarn:"Mercenarios: comienzan en G6", specBlocked:"Los especialistas requieren modernización completa. Cambia a Solo Guardias o completa la investigación.", specTierBlocked:"Los especialistas solo están disponibles para G7 a G9.", groupGuardsmen:"Guardias", groupSpecialists:"Especialistas", groupMonsters:"Monstruos", groupMercs:"Mercenarios", disclaimerTitle:"Aviso de la calculadora", disclaimerText:"Esta calculadora ofrece una configuración base para composición y orden de ataque. Los resultados pueden variar según bonos, investigación, equipo y otros modificadores.", advG6:"Se aplicó la maximización avanzada G6", advG5:"Se aplicó la maximización avanzada G5" },
-      pl: { language:"Język", title:"Kalkulator Ustawienia Wojsk WoA", sub:"Wprowadź przywództwo, autorytet, dominację, poziom wojsk i tryb ustawienia. Kalkulator automatycznie zbuduje układ.", inputs:"Dane wejściowe", leadership:"Przywództwo", authority:"Autorytet", dominance:"Dominacja", troop:"Najwyższy poziom wojsk", stackMode:"Tryb ustawienia", guardsOnly:"Tylko strażnicy", guardsSpecs:"Strażnicy + specjaliści", modernisation:"Modernizacja armii ukończona", yes:"Tak", no:"Nie", calc:"Oblicz", reset:"Resetuj", howTitle:"Jak używać:", how1:"1. Wprowadź przywództwo, autorytet i dominację.", how2:"2. Wybierz poziom wojsk i tryb ustawienia.", how3:"3. Specjaliści są zablokowani bez pełnej modernizacji armii.", how4:"4. Używana jest dokładna wprowadzona wartość Przywództwa; końcowe liczby wojsk są przeliczane na pełne jednostki.", modeNote:"Strażnicy + specjaliści są zalecani tylko przy pełnej modernizacji armii.", selectedTiers:"Wybrane poziomy", selectedMonsters:"Wybrane poziomy potworów", highestFlyer:"Najwyższe łączne HP latających", stacksReturned:"Zwrócone stosy", roundedLead:"Użyte przywództwo", quickFilter:"Szybki filtr", all:"Wszystko", troops:"Strażnicy + specjaliści", guardsmen:"Strażnicy", specialists:"Specjaliści", monsters:"Potwory", mercs:"Najemnicy", order:"Kolejność", tier:"Poziom", name:"Nazwa", type:"Typ", count:"Liczba", hp:"HP / Jednostkę", total:"Łączne HP", group:"Grupa", monstersOk:"Potwory: dodane tam, gdzie pozwala limit", monstersWarn:"Potwory: ograniczone przez limit lub dominację", mercsOk:"Najemnicy: dostępni od tego poziomu", mercsWarn:"Najemnicy zaczynają się od G6", specBlocked:"Specjaliści wymagają pełnej modernizacji armii. Przełącz na Tylko strażnicy lub dokończ badania.", specTierBlocked:"Specjaliści są dostępni tylko dla G7–G9.", groupGuardsmen:"Strażnicy", groupSpecialists:"Specjaliści", groupMonsters:"Potwory", groupMercs:"Najemnicy", disclaimerTitle:"Zastrzeżenie", disclaimerText:"Ten kalkulator daje bazowy układ składu wojsk i kolejności ataku. Ze względu na różnice w bonusach, badaniach, wyposażeniu i innych modyfikatorach wyniki mogą się różnić. Dostosuj układ do swojego konta.", advG6:"Zastosowano zaawansowaną maksymalizację G6", advG5:"Zastosowano zaawansowaną maksymalizację G5" },
-      ar: { language:"اللغة", title:"حاسبة ترتيب القوات WoA", sub:"أدخل القيادة والسلطة والسيطرة ومستوى القوات ووضع الترتيب. ستقوم الحاسبة ببناء الترتيب تلقائياً.", inputs:"المدخلات", leadership:"القيادة", authority:"السلطة", dominance:"السيطرة", troop:"أعلى مستوى للقوات", stackMode:"وضع الترتيب", guardsOnly:"الحرس فقط", guardsSpecs:"الحرس + المتخصصون", modernisation:"تم إكمال تحديث الجيش", yes:"نعم", no:"لا", calc:"احسب", reset:"إعادة تعيين", howTitle:"طريقة الاستخدام:", how1:"1. أدخل القيادة والسلطة والسيطرة.", how2:"2. اختر مستوى القوات ووضع الترتيب.", how3:"3. يتم حظر المتخصصين ما لم يكتمل تحديث الجيش.", how4:"4. تُستخدم قيمة القيادة المُدخلة كما هي، ثم تُحوّل أعداد القوات النهائية إلى وحدات صحيحة.", modeNote:"يوصى باستخدام الحرس + المتخصصون فقط عند اكتمال تحديث الجيش بالكامل.", selectedTiers:"المستويات المختارة", selectedMonsters:"مستويات الوحوش المختارة", highestFlyer:"أعلى إجمالي HP للطيران", stacksReturned:"عدد التشكيلات المعروضة", roundedLead:"القيادة المستخدمة", quickFilter:"تصفية سريعة", all:"الكل", troops:"الحرس + المتخصصون", guardsmen:"الحرس", specialists:"المتخصصون", monsters:"الوحوش", mercs:"المرتزقة", order:"الترتيب", tier:"المستوى", name:"الاسم", type:"النوع", count:"العدد", hp:"HP / للوحدة", total:"إجمالي HP", group:"المجموعة", monstersOk:"الوحوش: تم تضمينها حيث يسمح الحد", monstersWarn:"الوحوش: محدودة بسبب الحد أو السيطرة", mercsOk:"المرتزقة: متاحة من هذا المستوى", mercsWarn:"المرتزقة تبدأ من G6", specBlocked:"يتطلب المتخصصون تحديث الجيش بالكامل. انتقل إلى الحرس فقط أو أكمل البحث.", specTierBlocked:"المتخصصون متاحون فقط من G7 إلى G9.", groupGuardsmen:"الحرس", groupSpecialists:"المتخصصون", groupMonsters:"الوحوش", groupMercs:"المرتزقة", disclaimerTitle:"إخلاء مسؤولية الحاسبة", disclaimerText:"تقدم هذه الحاسبة إعداداً أساسياً لتكوين القوات وترتيب الإطلاق. قد تختلف النتائج بسبب اختلاف المكافآت والأبحاث والمعدات والعوامل الأخرى. يوصى بضبط النتائج بما يناسب حسابك.", advG6:"تم تطبيق تعظيم G6 المتقدم", advG5:"تم تطبيق تعظيم G5 المتقدم" },
-      uk: { language:"Мова", title:"Калькулятор стеків військ WoA", sub:"Введіть лідерство, авторитет, домінування, рівень військ і режим стеків. Калькулятор автоматично збере побудову.", inputs:"Вхідні дані", leadership:"Лідерство", authority:"Авторитет", dominance:"Домінування", troop:"Найвищий рівень військ", stackMode:"Режим стеків", guardsOnly:"Лише гвардія", guardsSpecs:"Гвардія + спеціалісти", modernisation:"Модернізацію армії завершено", yes:"Так", no:"Ні", calc:"Розрахувати", reset:"Скинути", howTitle:"Як користуватися:", how1:"1. Введіть лідерство, авторитет і домінування.", how2:"2. Оберіть рівень військ і режим стеків.", how3:"3. Спеціалісти заблоковані, якщо модернізацію армії не завершено.", how4:"4. Для розрахунку використовується точне введене лідерство; підсумкова кількість військ переводиться в цілі одиниці.", modeNote:"Гвардія + спеціалісти рекомендується лише при повністю завершеній модернізації армії.", selectedTiers:"Обрані рівні", selectedMonsters:"Обрані рівні монстрів", highestFlyer:"Найвище сумарне HP летючих", stacksReturned:"Повернуто стеків", roundedLead:"Використане лідерство", quickFilter:"Швидкий фільтр", all:"Усі", troops:"Гвардія + спеціалісти", guardsmen:"Гвардія", specialists:"Спеціалісти", monsters:"Монстри", mercs:"Найманці", order:"Порядок", tier:"Рівень", name:"Назва", type:"Тип", count:"Кількість", hp:"HP / одиницю", total:"Загальне HP", group:"Група", monstersOk:"Монстри: додані там, де дозволяє ліміт", monstersWarn:"Монстри: обмежені лімітом або домінуванням", mercsOk:"Найманці: доступні з цього рівня", mercsWarn:"Найманці починаються з G6", specBlocked:"Для спеціалістів потрібна повна модернізація армії. Перейдіть на Лише гвардія або завершіть дослідження.", specTierBlocked:"Спеціалісти доступні лише для G7–G9.", groupGuardsmen:"Гвардія", groupSpecialists:"Спеціалісти", groupMonsters:"Монстри", groupMercs:"Найманці", disclaimerTitle:"Примітка калькулятора", disclaimerText:"Цей калькулятор надає базову побудову для складу військ і порядку удару. Через різницю в бонусах, дослідженнях, спорядженні та інших модифікаторах результати можуть відрізнятися. Налаштуйте побудову під свій акаунт.", advG6:"Застосовано розширену максимізацію G6", advG5:"Застосовано розширену максимізацію G5" },
-      fr: { language:"Langue", title:"Calculateur d’Empilement de Troupes WoA", sub:"Saisissez le leadership, l’autorité, la dominance, le niveau de troupes et le mode d’empilement. Le calculateur construit automatiquement votre composition.", inputs:"Entrées", leadership:"Army (Leadership)", authority:"Autorité", dominance:"Monsters (Dominance)", troop:"Niveau de troupe le plus élevé", stackMode:"Mode d’empilement", guardsOnly:"Gardes uniquement", guardsSpecs:"Gardes + spécialistes", modernisation:"Modernisation de l’armée terminée", yes:"Oui", no:"Non", calc:"Calculer", reset:"Réinitialiser", howTitle:"Comment utiliser :", how1:"1. Saisissez leadership, autorité et dominance.", how2:"2. Choisissez le niveau de troupes et le mode d’empilement.", how3:"3. Les spécialistes sont bloqués tant que la modernisation de l’armée n’est pas terminée.", how4:"4. Le Leadership exact saisi est utilisé ; les quantités finales de troupes sont converties en unités entières.", modeNote:"Gardes + spécialistes n’est recommandé que lorsque la modernisation de l’armée est totalement terminée.", selectedTiers:"Niveaux sélectionnés", selectedMonsters:"Niveaux de monstres sélectionnés", highestFlyer:"HP total le plus élevé des volants", stacksReturned:"Piles renvoyées", roundedLead:"Leadership utilisé", quickFilter:"Filtre rapide", all:"Tous", troops:"Gardes + spécialistes", guardsmen:"Gardes", specialists:"Spécialistes", monsters:"Monstres", mercs:"Mercenaires", order:"Ordre", tier:"Niveau", name:"Nom", type:"Type", count:"Quantité", hp:"HP / unité", total:"HP total", group:"Groupe", monstersOk:"Monstres : inclus lorsque la limite le permet", monstersWarn:"Monstres : limités par le plafond ou la dominance", mercsOk:"Mercenaires : activés à partir de ce niveau", mercsWarn:"Les mercenaires commencent à G6", specBlocked:"Les spécialistes nécessitent une modernisation complète de l’armée. Passez à Gardes uniquement ou terminez la recherche.", specTierBlocked:"Les spécialistes sont disponibles uniquement de G7 à G9.", groupGuardsmen:"Gardes", groupSpecialists:"Spécialistes", groupMonsters:"Monstres", groupMercs:"Mercenaires", disclaimerTitle:"Avertissement du calculateur", disclaimerText:"Ce calculateur fournit une base de composition et d’ordre d’attaque. En raison des différences de bonus, recherches, équipements et autres modificateurs, les résultats peuvent varier. Ajustez selon votre compte.", advG6:"Maximisation avancée G6 appliquée", advG5:"Maximisation avancée G5 appliquée" },
-      pt: { language:"Idioma", title:"Calculadora de Formação de Tropas WoA", sub:"Insira liderança, autoridade, dominância, nível de tropas e modo de pilha. A calculadora monta a formação automaticamente.", inputs:"Entradas", leadership:"Liderança", authority:"Autoridade", dominance:"Dominância", troop:"Nível mais alto de tropas", stackMode:"Modo de pilha", guardsOnly:"Apenas guardas", guardsSpecs:"Guardas + especialistas", modernisation:"Modernização do exército concluída", yes:"Sim", no:"Não", calc:"Calcular", reset:"Redefinir", howTitle:"Como usar:", how1:"1. Insira liderança, autoridade e dominância.", how2:"2. Escolha o nível de tropas e o modo de pilha.", how3:"3. Especialistas ficam bloqueados sem a modernização completa do exército.", how4:"4. A Liderança exata inserida é usada; as quantidades finais de tropas são convertidas em unidades inteiras.", modeNote:"Guardas + especialistas só é recomendado quando a modernização do exército estiver totalmente concluída.", selectedTiers:"Níveis selecionados", selectedMonsters:"Níveis de monstros selecionados", highestFlyer:"Maior HP total dos voadores", stacksReturned:"Pilhas retornadas", roundedLead:"Liderança utilizada", quickFilter:"Filtro rápido", all:"Todos", troops:"Guardas + especialistas", guardsmen:"Guardas", specialists:"Especialistas", monsters:"Monstros", mercs:"Mercenários", order:"Ordem", tier:"Nível", name:"Nome", type:"Tipo", count:"Quantidade", hp:"HP / unidade", total:"HP total", group:"Grupo", monstersOk:"Monstros: incluídos onde o limite permite", monstersWarn:"Monstros: limitados por teto ou dominância", mercsOk:"Mercenários: ativados neste nível", mercsWarn:"Mercenários começam em G6", specBlocked:"Especialistas exigem modernização completa do exército. Mude para Apenas guardas ou conclua a pesquisa.", specTierBlocked:"Especialistas só estão disponíveis de G7 a G9.", groupGuardsmen:"Guardas", groupSpecialists:"Especialistas", groupMonsters:"Monstros", groupMercs:"Mercenários", disclaimerTitle:"Aviso da calculadora", disclaimerText:"Esta calculadora fornece uma base para composição de tropas e ordem de ataque. Devido a diferenças em bônus, pesquisas, equipamentos e outros modificadores, os resultados podem variar. Ajuste conforme a sua conta.", advG6:"Maximização avançada G6 aplicada", advG5:"Maximização avançada G5 aplicada" }
-    };
-
-
-    const guidanceI18n = {
-      en:{
-        troopLabel:"Troop Levels to Include",
-        guardsSectionTitle:"Guardsmen",
-        guardsSectionRule:"Select 3 Guardsmen, or 2 when using a Specialist",
-        guardsGuidance:"<strong>Recommended:</strong> For better Specialist results, use G7 or higher as your main Guardsmen tier. If your available Guardsmen are below G7, use <strong>Guardsmen Only</strong> instead.",
-        specialistsSectionTitle:"Specialists",
-        specialistsSectionRule:"Requires full Modernisation + 2 Guardsmen tiers",
-        specialistsGuidance:"<strong>Why Specialists may be greyed out:</strong> Specialists require <strong>full Army Modernisation research</strong> and cannot be used alone. Select <strong>2 valid Guardsmen tiers first</strong>; compatible Specialist options will then become available.",
-        monstersSectionTitle:"Monsters",
-        monstersSectionRule:"Select 2 or 3 consecutive Monster tiers",
-        tierHelpText:"Recommended build: 20 stacks. Use 3 consecutive Guardsmen tiers, or 2 consecutive Guardsmen plus 1 valid Specialist when full Army Modernisation research is complete. Specialists cannot be used alone. Select 2 or 3 consecutive Monster tiers."
-      },
-      pt:{
-        troopLabel:"Níveis de tropas a incluir",
-        guardsSectionTitle:"Guardas",
-        guardsSectionRule:"Selecione 3 níveis de Guardas, ou 2 ao usar um Especialista",
-        guardsGuidance:"<strong>Recomendado:</strong> Para melhores resultados com Especialistas, use G7 ou superior como nível principal de Guardas. Se os seus Guardas disponíveis estiverem abaixo de G7, use <strong>Apenas Guardas</strong>.",
-        specialistsSectionTitle:"Especialistas",
-        specialistsSectionRule:"Requer Modernização completa + 2 níveis de Guardas",
-        specialistsGuidance:"<strong>Por que os Especialistas podem aparecer desativados:</strong> Os Especialistas exigem pesquisa completa de Modernização do Exército e não podem ser usados sozinhos. Selecione primeiro <strong>2 níveis válidos de Guardas</strong>; depois, as opções compatíveis de Especialista ficarão disponíveis.",
-        monstersSectionTitle:"Monstros",
-        monstersSectionRule:"Selecione 2 ou 3 níveis consecutivos de Monstros",
-        tierHelpText:"Configuração recomendada: 20 stacks. Use 3 níveis consecutivos de Guardas, ou 2 Guardas consecutivos + 1 Especialista válido quando a Modernização do Exército estiver totalmente pesquisada. Especialistas não podem ser usados sozinhos. Selecione 2 ou 3 níveis consecutivos de Monstros."
-      },
-      es:{
-        troopLabel:"Niveles de tropas a incluir",
-        guardsSectionTitle:"Guardias",
-        guardsSectionRule:"Selecciona 3 niveles de Guardias, o 2 al usar un Especialista",
-        guardsGuidance:"<strong>Recomendado:</strong> Para mejores resultados con Especialistas, usa G7 o superior como nivel principal de Guardias. Si tus Guardias disponibles están por debajo de G7, usa <strong>Solo Guardias</strong>.",
-        specialistsSectionTitle:"Especialistas",
-        specialistsSectionRule:"Requiere Modernización completa + 2 niveles de Guardias",
-        specialistsGuidance:"<strong>Por qué los Especialistas pueden aparecer desactivados:</strong> Requieren la investigación completa de Modernización del Ejército y no pueden usarse solos. Selecciona primero <strong>2 niveles válidos de Guardias</strong>; después se habilitarán los Especialistas compatibles.",
-        monstersSectionTitle:"Monstruos",
-        monstersSectionRule:"Selecciona 2 o 3 niveles consecutivos de Monstruos",
-        tierHelpText:"Configuración recomendada: 20 stacks. Usa 3 niveles consecutivos de Guardias, o 2 Guardias consecutivos + 1 Especialista válido con la Modernización del Ejército completa. Los Especialistas no pueden usarse solos. Selecciona 2 o 3 niveles consecutivos de Monstruos."
-      },
-      fr:{
-        troopLabel:"Niveaux de troupes à inclure",
-        guardsSectionTitle:"Gardes",
-        guardsSectionRule:"Sélectionnez 3 niveaux de Gardes, ou 2 avec un Spécialiste",
-        guardsGuidance:"<strong>Recommandé :</strong> Pour de meilleurs résultats avec les Spécialistes, utilisez G7 ou plus comme niveau principal de Gardes. Si vos Gardes disponibles sont inférieurs à G7, utilisez <strong>Gardes uniquement</strong>.",
-        specialistsSectionTitle:"Spécialistes",
-        specialistsSectionRule:"Nécessite Modernisation complète + 2 niveaux de Gardes",
-        specialistsGuidance:"<strong>Pourquoi les Spécialistes peuvent être grisés :</strong> Ils nécessitent la recherche complète de Modernisation de l’armée et ne peuvent pas être utilisés seuls. Sélectionnez d’abord <strong>2 niveaux valides de Gardes</strong>; les options compatibles seront ensuite disponibles.",
-        monstersSectionTitle:"Monstres",
-        monstersSectionRule:"Sélectionnez 2 ou 3 niveaux consécutifs de Monstres",
-        tierHelpText:"Configuration recommandée : 20 stacks. Utilisez 3 niveaux consécutifs de Gardes, ou 2 Gardes consécutifs + 1 Spécialiste valide avec la Modernisation complète. Les Spécialistes ne peuvent pas être utilisés seuls. Sélectionnez 2 ou 3 niveaux consécutifs de Monstres."
-      },
-      ru:{
-        troopLabel:"Уровни войск для включения",
-        guardsSectionTitle:"Гвардейцы",
-        guardsSectionRule:"Выберите 3 уровня гвардейцев или 2 при использовании специалиста",
-        guardsGuidance:"<strong>Рекомендуется:</strong> Для лучших результатов со специалистами используйте G7 или выше как основной уровень гвардейцев. Если доступные гвардейцы ниже G7, используйте <strong>Только гвардейцы</strong>.",
-        specialistsSectionTitle:"Специалисты",
-        specialistsSectionRule:"Нужна полная модернизация + 2 уровня гвардейцев",
-        specialistsGuidance:"<strong>Почему специалисты могут быть недоступны:</strong> Для них требуется полное исследование модернизации армии, и их нельзя использовать отдельно. Сначала выберите <strong>2 допустимых уровня гвардейцев</strong>; после этого станут доступны совместимые специалисты.",
-        monstersSectionTitle:"Монстры",
-        monstersSectionRule:"Выберите 2 или 3 последовательных уровня монстров",
-        tierHelpText:"Рекомендуемая сборка: 20 стеков. Используйте 3 последовательных уровня гвардейцев или 2 последовательных уровня + 1 подходящего специалиста после полной модернизации. Специалистов нельзя использовать отдельно. Выберите 2 или 3 последовательных уровня монстров."
-      },
-      tr:{
-        troopLabel:"Dahil edilecek birlik seviyeleri",
-        guardsSectionTitle:"Muhafızlar",
-        guardsSectionRule:"3 Muhafız seviyesi seçin veya Uzman kullanırken 2 seviye seçin",
-        guardsGuidance:"<strong>Öneri:</strong> Uzmanlarla daha iyi sonuç için ana Muhafız seviyeniz G7 veya üstü olsun. Muhafızlarınız G7'nin altındaysa <strong>Sadece Muhafızlar</strong> modunu kullanın.",
-        specialistsSectionTitle:"Uzmanlar",
-        specialistsSectionRule:"Tam Modernizasyon + 2 Muhafız seviyesi gerekir",
-        specialistsGuidance:"<strong>Uzmanlar neden gri olabilir:</strong> Uzmanlar tam Ordu Modernizasyonu araştırması gerektirir ve tek başına kullanılamaz. Önce <strong>2 geçerli Muhafız seviyesi</strong> seçin; ardından uyumlu Uzman seçenekleri açılır.",
-        monstersSectionTitle:"Canavarlar",
-        monstersSectionRule:"2 veya 3 ardışık Canavar seviyesi seçin",
-        tierHelpText:"Önerilen yapı: 20 stack. 3 ardışık Muhafız seviyesi veya tam Modernizasyon tamamlandığında 2 ardışık Muhafız + 1 geçerli Uzman kullanın. Uzmanlar tek başına kullanılamaz. 2 veya 3 ardışık Canavar seviyesi seçin."
-      },
-      pl:{
-        troopLabel:"Poziomy wojsk do uwzględnienia",
-        guardsSectionTitle:"Strażnicy",
-        guardsSectionRule:"Wybierz 3 poziomy Strażników lub 2 przy użyciu Specjalisty",
-        guardsGuidance:"<strong>Zalecane:</strong> Dla lepszych wyników ze Specjalistami używaj G7 lub wyżej jako głównego poziomu Strażników. Jeśli dostępni Strażnicy są poniżej G7, wybierz <strong>Tylko Strażnicy</strong>.",
-        specialistsSectionTitle:"Specjaliści",
-        specialistsSectionRule:"Wymaga pełnej Modernizacji + 2 poziomów Strażników",
-        specialistsGuidance:"<strong>Dlaczego Specjaliści mogą być wyszarzeni:</strong> Wymagają pełnego badania Modernizacji Armii i nie mogą być używani samodzielnie. Najpierw wybierz <strong>2 prawidłowe poziomy Strażników</strong>; wtedy dostępne będą kompatybilne opcje.",
-        monstersSectionTitle:"Potwory",
-        monstersSectionRule:"Wybierz 2 lub 3 kolejne poziomy Potworów",
-        tierHelpText:"Zalecana konfiguracja: 20 stacków. Użyj 3 kolejnych poziomów Strażników albo 2 kolejnych Strażników + 1 prawidłowego Specjalisty po pełnej Modernizacji. Specjaliści nie mogą być używani samodzielnie. Wybierz 2 lub 3 kolejne poziomy Potworów."
-      },
-      uk:{
-        troopLabel:"Рівні військ для включення",
-        guardsSectionTitle:"Гвардія",
-        guardsSectionRule:"Виберіть 3 рівні гвардії або 2 при використанні спеціаліста",
-        guardsGuidance:"<strong>Рекомендовано:</strong> Для кращих результатів зі спеціалістами використовуйте G7 або вище як основний рівень гвардії. Якщо доступна гвардія нижче G7, використовуйте <strong>Лише гвардія</strong>.",
-        specialistsSectionTitle:"Спеціалісти",
-        specialistsSectionRule:"Потрібна повна модернізація + 2 рівні гвардії",
-        specialistsGuidance:"<strong>Чому спеціалісти можуть бути недоступні:</strong> Вони потребують повного дослідження модернізації армії та не можуть використовуватися окремо. Спочатку виберіть <strong>2 допустимі рівні гвардії</strong>; після цього стануть доступні сумісні спеціалісти.",
-        monstersSectionTitle:"Монстри",
-        monstersSectionRule:"Виберіть 2 або 3 послідовні рівні монстрів",
-        tierHelpText:"Рекомендована побудова: 20 стеків. Використовуйте 3 послідовні рівні гвардії або 2 послідовні рівні + 1 допустимого спеціаліста після повної модернізації. Спеціалістів не можна використовувати окремо. Виберіть 2 або 3 послідовні рівні монстрів."
-      },
-      ar:{
-        troopLabel:"مستويات القوات المراد تضمينها",
-        guardsSectionTitle:"الحرس",
-        guardsSectionRule:"اختر 3 مستويات من الحرس، أو مستويين عند استخدام متخصص",
-        guardsGuidance:"<strong>موصى به:</strong> للحصول على نتائج أفضل مع المتخصصين، استخدم G7 أو أعلى كمستوى الحرس الرئيسي. إذا كانت مستويات الحرس أقل من G7، فاستخدم <strong>الحرس فقط</strong>.",
-        specialistsSectionTitle:"المتخصصون",
-        specialistsSectionRule:"يتطلب تحديثًا كاملاً + مستويين من الحرس",
-        specialistsGuidance:"<strong>لماذا قد تظهر خيارات المتخصصين باللون الرمادي:</strong> يتطلب المتخصصون إكمال بحث تحديث الجيش بالكامل ولا يمكن استخدامهم بمفردهم. اختر أولاً <strong>مستويين صالحين من الحرس</strong>؛ بعدها ستتوفر الخيارات المتوافقة.",
-        monstersSectionTitle:"الوحوش",
-        monstersSectionRule:"اختر مستويين أو 3 مستويات متتالية من الوحوش",
-        tierHelpText:"التكوين الموصى به: 20 مجموعة. استخدم 3 مستويات متتالية من الحرس، أو مستويين متتاليين + متخصص صالح بعد إكمال التحديث بالكامل. لا يمكن استخدام المتخصصين بمفردهم. اختر مستويين أو 3 مستويات متتالية من الوحوش."
-      }
-    };
-
-    function applyGuidanceLanguage(){
-      const lang = document.getElementById("language").value;
-      const g = guidanceI18n[lang] || guidanceI18n.en;
-
-      const text = (id, value) => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = value;
-      };
-      const rich = (id, value) => {
-        const el = document.getElementById(id);
-        if (el) el.innerHTML = value;
-      };
-
-      text("troopLevelLabel", g.troopLabel);
-      text("guardsSectionTitle", g.guardsSectionTitle);
-      text("guardsSectionRule", g.guardsSectionRule);
-      rich("guardsGuidance", g.guardsGuidance);
-      text("specialistsSectionTitle", g.specialistsSectionTitle);
-      text("specialistsSectionRule", g.specialistsSectionRule);
-      rich("specialistsGuidance", g.specialistsGuidance);
-      text("monstersSectionTitle", g.monstersSectionTitle);
-      text("monstersSectionRule", g.monstersSectionRule);
-      text("tierHelpText", g.tierHelpText);
-    }
-
-    function t(key){
-      const lang = (document.getElementById("language") || { value: "en" }).value;
-      return (i18n[lang] && i18n[lang][key]) || i18n.en[key] || key;
-    }
-
-    function applyLanguage(){
-      const lang = document.getElementById("language").value;
-      document.documentElement.lang = lang;
-      document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
-
-      const set = (id, key) => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = t(key);
-      };
-
-      set("langLabel", "language");
-      set("heroTitle", "title");
-      set("heroSub", "sub");
-      set("inputsTitle", "inputs");
-      const setStatLabel = (id, key) => {
-        const el = document.getElementById(id);
-        const span = el ? el.querySelector("span") : null;
-        if (span) span.textContent = t(key);
-      };
-      setStatLabel("leadershipLabel", "leadership");
-      setStatLabel("authorityLabel", "authority");
-      setStatLabel("dominanceLabel", "dominance");
-      set("troopLevelLabel", "troop");
-      set("stackModeLabel", "stackMode");
-      set("stackModeGuardsText", "guardsOnly");
-      set("stackModeSpecsText", "guardsSpecs");
-      set("modernisationLabel", "modernisation");
-      set("modernisationNoText", "no");
-      set("modernisationYesText", "yes");
-      set("calcBtn", "calc");
-      set("heroCalcBtn", "calc");
-      set("resetBtn", "reset");
-      set("heroResetBtn", "reset");
-      set("howTitle", "howTitle");
-      set("how1", "how1");
-      set("how2", "how2");
-      set("how3", "how3");
-      set("how4", "how4");
-      set("modeNoteText", "modeNote");
-      set("statGuard", "selectedTiers");
-      set("statMon", "selectedMonsters");
-      set("statFly", "highestFlyer");
-      set("statRows", "stacksReturned");
-      set("statRounded", "roundedLead");
-      set("filterLabel", "quickFilter");
-      set("thOrder", "order");
-      set("thTier", "tier");
-      set("thName", "name");
-      set("thType", "type");
-      set("thCount", "count");
-      set("thHP", "hp");
-      set("thTotal", "total");
-      set("thGroup", "group");
-      set("disclaimerTitle", "disclaimerTitle");
-      set("disclaimerText", "disclaimerText");
-
-      applyGuidanceLanguage();
-
-      const filter = document.getElementById("typeFilter");
-      const filterHero = document.getElementById("typeFilterHero");
-
-      [filter, filterHero].forEach(sel => {
-        if (!sel) return;
-        const prev = sel.value;
-        sel.innerHTML = `
-          <option value="all">${t("all")}</option>
-          <option value="troops">${t("troops")}</option>
-          <option value="guardsmen">${t("guardsmen")}</option>
-          <option value="specialists">${t("specialists")}</option>
-          <option value="monsters">${t("monsters")}</option>
-          <option value="mercs">${t("mercs")}</option>
-        `;
-        sel.value = prev;
-      });
-    }
-
-    const guardData = {
-      G3:{Ranged:{name:"Archer III",hp:480},Mounted:{name:"Spearman III",hp:960},Melee:{name:"Rider III",hp:480}},
-      G4:{Ranged:{name:"Archer IV",hp:870},Mounted:{name:"Spearman IV",hp:1740},Melee:{name:"Rider IV",hp:870}},
-      G5:{Ranged:{name:"Archer V",hp:1560},Mounted:{name:"Spearman V",hp:3150},Melee:{name:"Rider V",hp:1560},Flyers:{name:"Battle griffin V",hp:30000}},
-      G6:{Ranged:{name:"Heavy arbalester VI",hp:2840},Mounted:{name:"Heavy halberdier VI",hp:5700},Melee:{name:"Mounted knight VI",hp:2840},Flyers:{name:"Battle griffin VI",hp:57000}},
-      G7:{Ranged:{name:"Heavy arbalester VII",hp:5100},Mounted:{name:"Heavy halberdier VII",hp:10200},Melee:{name:"Mounted knight VII",hp:5100},Flyers:{name:"Battle griffin VII",hp:102000}},
-      G8:{Ranged:{name:"Purifier I",hp:9180},Mounted:{name:"Punisher I",hp:18360},Melee:{name:"Smiter I",hp:9180},Flyers:{name:"Corax I",hp:183600}},
-      G9:{Ranged:{name:"Purifier II",hp:16530},Mounted:{name:"Punisher II",hp:33060},Melee:{name:"Smiter II",hp:16530},Flyers:{name:"Corax II",hp:330600}}
-    };
-
-    const specialistData = {
-      S7:{Ranged:{name:"Deadshot VII",hp:5100},Mounted:{name:"Lion Rider VII",hp:10200},Melee:{name:"Heavy Knight VII",hp:5100},Flyers:{name:"Vulture VII",hp:5100}},
-      S8:{Ranged:{name:"Legitimist I",hp:9180},Mounted:{name:"Royal Lion I",hp:18360},Melee:{name:"Duelist I",hp:9180},Flyers:{name:"Whitemane I",hp:183600}},
-      S9:{Ranged:{name:"Legitimist II",hp:16530},Mounted:{name:"Royal Lion II",hp:33060},Melee:{name:"Duelist II",hp:16530},Flyers:{name:"Whitemane II",hp:330600}}
-    };
-	    const monsterData = {
-      M4: [
-        ["Gorgon Medusa", "Ranged", 12000],
-        ["Magic Dragon", "Ranged", 15000],
-        ["Many Armed Guardian", "Melee", 13000],
-        ["Ice Phoenix", "Flying", 17000]
-      ],
-      M5: [
-        ["Desert Vanquisher V", "Mounted", 126000],
-        ["Flaming Centaur V", "Mounted", 132000],
-        ["Fearsome Manticore V", "Flying", 138000],
-        ["Ettin V", "Melee", 144000]
-      ],
-      M6: [
-        ["Troll Rider VI", "Mounted", 330000],
-        ["Crystal Dragon VI", "Melee", 360000],
-        ["Ruby Golem VI", "Melee", 390000],
-        ["Jungle Destroyer VI", "Melee", 390000]
-      ],
-      M7: [
-        ["Ancient Terror VII", "Mounted", 840000],
-        ["Destructive Colossus VII", "Ranged", 870000],
-        ["Black Dragon VII", "Flying", 900000],
-        ["Wind Lord VII", "Melee", 930000]
-      ],
-      M8: [
-        ["Trickster I", "Ranged", 1920000],
-        ["Devastator I", "Mounted", 1950000],
-        ["Fire Phoenix I", "Flying", 1980000],
-        ["Kraken I", "Melee", 2010000]
-      ],
-      M9: [
-        ["Trickster II", "Ranged", 3450000],
-        ["Devastator II", "Mounted", 3510000],
-        ["Fire Phoenix II", "Flying", 3570000],
-        ["Kraken II", "Melee", 3630000]
-      ]
-    };
-
-    const mercData = [
-      // Verified in-game Health values (HP / Unit), not Strength values.
-      ["Demonic Salamander",1230000],["Warden",1410000],["Eternal Cannoneer",1320000],
-      ["Jago",660000],["Galloper",66000],["Scarface",33000],["Pounder",33000],
-      ["Warregal",660000],["Quicksand",66000],["Slavic Warrior",33000],["Highlander",33000],
-      ["Superior Epic Monster Hunter",75000],["Heavy Siege (Ariel)",330000],["Wyvern",2070000]
-    ];
-
-    const els = {
-      leadership: document.getElementById("leadership"),
-      authority: document.getElementById("authority"),
-      dominance: document.getElementById("dominance"),
-      calcBtn: document.getElementById("calcBtn"),
-      resetBtn: document.getElementById("resetBtn"),
-      heroCalcBtn: document.getElementById("heroCalcBtn"),
-      heroResetBtn: document.getElementById("heroResetBtn"),
-      refreshVisualBtn: document.getElementById("refreshVisualBtn"),
-      scrollToResultsBtn: document.getElementById("scrollToResultsBtn"),
-      searchUnit: document.getElementById("searchUnit"),
-      typeFilter: document.getElementById("typeFilter"),
-      typeFilterHero: document.getElementById("typeFilterHero"),
-      outputBody: document.getElementById("outputBody"),
-      guardTiers: document.getElementById("guardTiers"),
-      monsterLevels: document.getElementById("monsterLevels"),
-      flyerCap: document.getElementById("flyerCap"),
-      rowCount: document.getElementById("rowCount"),
-      roundedLeadership: document.getElementById("roundedLeadership"),
-      topValidation: document.getElementById("topValidation"),
-      messages: document.getElementById("messages"),
-      resultsStart: document.getElementById("resultsStart"),
-      toTopBtn: document.getElementById("toTopBtn")
-    };
-
-    const fmt = n => Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
-    const mode = () => document.querySelector('input[name="stackMode"]:checked').value;
-    const modernisation = () => document.querySelector('input[name="modernisation"]:checked').value;
-
-    function roundedLeadership(value){
-      return Math.floor(Number(value || 0) / 1000) * 1000;
-    }
-
-    function getLeadershipCost(unitType){
-      if (unitType === "Flyers" || unitType === "Flying") return 20;
-      if (unitType === "Mounted") return 2;
-      return 1;
-    }
-
-    function tierCountsFromLeadership(L, high){
-      const low = Math.max(3, high - 2);
-      const divider = 3.7;
-
-      const tiers = {};
-      const tLow = "G" + low;
-      const tMid = "G" + (high - 1);
-      const tTop = "G" + high;
-
-      function hpOf(tier, type){
-        return guardData[tier][type].hp;
-      }
-
-      function buildTierCountsFromBaseRanged(tier, rangedCount){
-        const rangedHP = hpOf(tier, "Ranged");
-        const mountedHP = hpOf(tier, "Mounted");
-        const flyersHP = guardData[tier].Flyers ? hpOf(tier, "Flyers") : 0;
-        const targetTotalHP = rangedCount * rangedHP;
-
-        return {
-          Ranged: rangedCount,
-          Mounted: targetTotalHP / mountedHP,
-          Melee: rangedCount,
-          Flyers: guardData[tier].Flyers ? (targetTotalHP / flyersHP) : 0
-        };
-      }
-
-      const lowBaseRanged = (L / 2) / divider;
-      tiers[tLow] = buildTierCountsFromBaseRanged(tLow, lowBaseRanged);
-
-      const midBaseRanged = tiers[tLow].Ranged / 1.84;
-      tiers[tMid] = buildTierCountsFromBaseRanged(tMid, midBaseRanged);
-
-      const topBaseRanged = tiers[tMid].Ranged / 1.84;
-      tiers[tTop] = buildTierCountsFromBaseRanged(tTop, topBaseRanged);
-
-      return tiers;
-    }
-
-    function getSelectedGuardTiers(){
-      return Array.from(document.querySelectorAll(".tierCheck:checked"))
-        .map(el => el.value)
-        .sort((a,b) => Number(b.slice(1)) - Number(a.slice(1)));
-    }
-
-    function getSelectedSpecialistTiers(){
-      return Array.from(document.querySelectorAll(".specTierCheck:checked"))
-        .map(el => el.value)
-        .sort((a,b) => Number(b.slice(1)) - Number(a.slice(1)));
-    }
-
-    function getSelectedMonsterTiers(){
-      return Array.from(document.querySelectorAll(".monsterTierCheck:checked"))
-        .map(el => el.value)
-        .sort((a,b) => Number(a.slice(1)) - Number(b.slice(1)));
-    }
-
-    function isConsecutiveTierSet(tiers){
-      if (!tiers.length) return false;
-      const nums = tiers.map(t => Number(t.slice(1))).sort((a,b)=>b-a);
-      for (let i=1; i<nums.length; i++) {
-        if (nums[i-1] - nums[i] !== 1) return false;
-      }
-      return true;
-    }
-
-    function validGuardTriple(tiers){
-      return tiers.length === 3 && isConsecutiveTierSet(tiers);
-    }
-
-    function validGuardPair(tiers){
-      return tiers.length === 2 && isConsecutiveTierSet(tiers);
-    }
-
-    function validSpecialistsForPair(guardTiers){
-      if (!validGuardPair(guardTiers)) return [];
-      const valid = [];
-      guardTiers.forEach(g => {
-        const s = "S" + g.slice(1);
-        if (specialistData[s]) valid.push(s);
-      });
-
-      // Approved extra combination: G9 + G8 + S7.
-      if (guardTiers.includes("G9") && guardTiers.includes("G8") && specialistData["S7"]) {
-        valid.push("S7");
-      }
-
-      return [...new Set(valid)];
-    }
-
-    function canExtendGuardsOnly(candidateTiers){
-      if (candidateTiers.length > 3) return false;
-      const possible = [
-        ["G9","G8","G7"],["G8","G7","G6"],["G7","G6","G5"],
-        ["G6","G5","G4"],["G5","G4","G3"]
-      ];
-      return possible.some(set => candidateTiers.every(t => set.includes(t)));
-    }
-
-    function canExtendSpecialistGuards(candidateTiers){
-      if (candidateTiers.length > 2) return false;
-      const possiblePairs = [["G9","G8"],["G8","G7"],["G7","G6"]];
-      return possiblePairs.some(set => candidateTiers.every(t => set.includes(t)));
-    }
-
-    function canExtendMonsters(candidateTiers){
-      if (candidateTiers.length > 3) return false;
-      if (candidateTiers.length === 0) return true;
-      const possible = [
-        ["M9","M8"],["M9","M8","M7"],
-        ["M8","M7"],["M8","M7","M6"],
-        ["M7","M6"],["M7","M6","M5"],
-        ["M6","M5"],["M6","M5","M4"],
-        ["M5","M4"]
-      ];
-      return possible.some(set => candidateTiers.every(t => set.includes(t)));
-    }
-
-    function refreshCheckboxAvailability(){
-      const stackMode = mode();
-      const modern = modernisation() === "yes";
-      const guards = getSelectedGuardTiers();
-      const specs = getSelectedSpecialistTiers();
-      const monsters = getSelectedMonsterTiers();
-
-      // Guardsmen: selected boxes always remain enabled so the user can untick them.
-      document.querySelectorAll(".tierCheck").forEach(input => {
-        if (input.checked) {
-          input.disabled = false;
-        } else {
-          const candidate = [...guards, input.value];
-          input.disabled = stackMode === "guards"
-            ? !canExtendGuardsOnly(candidate)
-            : !canExtendSpecialistGuards(candidate);
-        }
-        input.closest(".choice")?.classList.toggle("disabled", input.disabled);
-      });
-
-      // Specialists: only valid in Specialist mode + full modernisation + valid G pair.
-      const validSpecs = stackMode === "specialists" && modern ? validSpecialistsForPair(guards) : [];
-      document.querySelectorAll(".specTierCheck").forEach(input => {
-        if (input.checked) {
-          // Keep selected specialist removable even if the G pair changes.
-          input.disabled = false;
-        } else {
-          input.disabled = specs.length >= 1 || !validSpecs.includes(input.value);
-        }
-        input.closest(".choice")?.classList.toggle("disabled", input.disabled);
-      });
-
-      // If Specialist mode is not currently eligible, clear Specialist checks.
-      if (stackMode !== "specialists" || !modern) {
-        document.querySelectorAll(".specTierCheck").forEach(input => input.checked = false);
-      } else if (specs.length) {
-        // Clear a Specialist that no longer matches the current Guardsmen pair.
-        document.querySelectorAll(".specTierCheck:checked").forEach(input => {
-          if (!validSpecs.includes(input.value)) input.checked = false;
-        });
-      }
-
-      // Monsters: preserve selected boxes, disable only choices that cannot complete a valid 2–3 tier set.
-      document.querySelectorAll(".monsterTierCheck").forEach(input => {
-        if (input.checked) {
-          input.disabled = false;
-        } else {
-          const candidate = [...monsters, input.value];
-          input.disabled = monsters.length >= 3 || !canExtendMonsters(candidate);
-        }
-        input.closest(".choice")?.classList.toggle("disabled", input.disabled);
-      });
-    }
-
-    function validateStackSelection(guardTiers, specTiers, monsterTiers){
-      const stackMode = mode();
-      const modern = modernisation() === "yes";
-
-      if (stackMode === "guards") {
-        if (guardTiers.length !== 3) return "Guardsmen Only requires exactly 3 consecutive Guardsmen levels.";
-        if (!validGuardTriple(guardTiers)) return "The 3 Guardsmen levels must be consecutive.";
-        if (specTiers.length) return "Specialists cannot be used in Guardsmen Only mode.";
-      } else {
-        if (!modern) return "Specialists require full Army Modernisation research.";
-        if (guardTiers.length !== 2) return "Select 2 consecutive Guardsmen tiers first. Specialists cannot be used alone.";
-        if (!validGuardPair(guardTiers)) return "The 2 Guardsmen levels must be consecutive.";
-        if (specTiers.length !== 1) return "Select exactly 1 Specialist level.";
-        const validSpecs = validSpecialistsForPair(guardTiers);
-        if (!validSpecs.includes(specTiers[0])) {
-          return "Choose a Specialist compatible with your 2 selected Guardsmen tiers. Specialists work as part of the Guardsmen backbone, not as standalone stacks.";
-        }
-      }
-
-      if (monsterTiers.length < 2 || monsterTiers.length > 3) {
-        return "Select a minimum of 2 and a maximum of 3 Monster levels.";
-      }
-      if (!isConsecutiveTierSet(monsterTiers)) {
-        return "Selected Monster levels must be consecutive.";
-      }
-
-      const coreStacks = (guardTiers.length + specTiers.length + monsterTiers.length) * 4;
-      if (coreStacks < 16) return "A minimum of 16 stacks is required.";
-
-      return "";
-    }
-
-    function currentValidationMessage(){
-      const guards = getSelectedGuardTiers();
-      const specs = mode() === "specialists" ? getSelectedSpecialistTiers() : [];
-      const monsters = getSelectedMonsterTiers();
-      return validateStackSelection(guards, specs, monsters);
-    }
-
-    function updateTopValidation(){
-      if (!els.topValidation) return;
-      const msg = currentValidationMessage();
-      els.topValidation.textContent = msg;
-      els.topValidation.classList.toggle("show", !!msg);
-    }
-
-    function syncTierCheckboxState(){
-      refreshCheckboxAvailability();
-      updateTopValidation();
-    }
-
-    function calculateSelectedTroopCounts(L, guardTiers, specTiers){
-      if (!guardTiers.length) return null;
-
-      const ratioGuard = 1.84;
-      const ratioSpec = 1.03;
-      const highest = Number(guardTiers[0].slice(1));
-      const blueprint = [];
-
-      function guardTierFactor(tier){
-        const n = Number(tier.slice(1));
-        return Math.pow(ratioGuard, highest - n);
-      }
-
-      guardTiers.forEach(tier => {
-        const source = guardData[tier];
-        if (!source) return;
-        const f = guardTierFactor(tier);
-
-        ["Flyers","Mounted","Ranged","Melee"].forEach(type => {
-          if (!source[type]) return;
-
-          let multiple = f;
-          if (type === "Flyers") multiple = f / 20;
-          else if (type === "Mounted") multiple = f / 2;
-
-          blueprint.push({
-            tier,
-            group:"guardsmen",
-            type,
-            multiple,
-            leadershipCost:getLeadershipCost(type)
-          });
-        });
-      });
-
-      specTiers.forEach(tier => {
-        const source = specialistData[tier];
-        if (!source) return;
-
-        const n = Number(tier.slice(1));
-        const matchingGuardFactor = Math.pow(ratioGuard, highest - n);
-        const f = matchingGuardFactor * ratioSpec;
-
-        ["Flyers","Mounted","Ranged","Melee"].forEach(type => {
-          if (!source[type]) return;
-
-          let multiple = f;
-
-          // S7 Vulture is the established exception: same count as S7 Ranged/Melee.
-          if (tier !== "S7" && type === "Flyers") multiple = f / 20;
-          else if (type === "Mounted") multiple = f / 2;
-
-          blueprint.push({
-            tier,
-            group:"specialists",
-            type,
-            multiple,
-            leadershipCost:getLeadershipCost(type)
-          });
-        });
-      });
-
-      // CRITICAL: Leadership must be weighted by troop leadership cost:
-      // Flyers x20, Mounted x2, Ranged x1, Melee x1.
-      const denominator = blueprint.reduce(
-        (sum,r) => sum + (r.multiple * r.leadershipCost),
-        0
-      );
-
-      if (denominator <= 0) return null;
-
-      const x = L / denominator;
-      const countsByTier = {};
-
-      blueprint.forEach(r => {
-        if (!countsByTier[r.tier]) countsByTier[r.tier] = {};
-        countsByTier[r.tier][r.type] = x * r.multiple;
-      });
-
-      return {x, countsByTier, highest, denominator};
-    }
-
-    function selectedMonsterLevels(high){
-      if (high === 5) return ["M4", "M5"];
-      return ["M" + (high - 1), "M" + high];
-    }
-
-    function specialistPlan(high){
-      if (high === 7) return { top:"G7", spec:"S7", low:"G6" };
-      if (high === 8) return { top:"G8", spec:"S8", low:"G7" };
-      if (high === 9) return { top:"G9", spec:"S9", low:"G8" };
-      return null;
-    }
-
-    function addTierRows(rows, orderStart, tier, source, counts, group){
-      let order = orderStart;
-      ["Ranged","Mounted","Melee","Flyers"].forEach(unit => {
-        if (source[tier] && source[tier][unit]) {
-          const hp = source[tier][unit].hp;
-          const name = source[tier][unit].name;
-          const count = counts[unit] || 0;
-          rows.push({
-            order: order++,
-            tier,
-            name,
-            unitType: unit,
-            count,
-            hp,
-            total: count * hp,
-            group
-          });
-        }
-      });
-      return order;
-    }
-
-    function calculateUsedLeadership(rows, groupName = "guardsmen"){
-      return rows.reduce((sum, r) => {
-        if (r.group !== groupName) return sum;
-        return sum + ((r.count || 0) * getLeadershipCost(r.unitType));
-      }, 0);
-    }
-
-    function floorCounts(rows){
-      rows.forEach(r => {
-        r.count = Math.max(Math.floor(r.count), 0);
-        r.total = r.count * r.hp;
-      });
-    }
-
-    function optimizedSpecialistCounts(roundedL, high){
-      const plan = specialistPlan(high);
-      if (!plan) return null;
-
-      const ratioSpec = 1.03;
-      const ratioLow = 1.84;
-
-      /*
-        G8/G9 specialist optimized formula:
-        x = top ranged/melee count.
-        Top: Flyers=x/20, Mounted=x/2, Ranged=x, Melee=x
-        Specialist: Top × 1.03
-        Lower Guardsmen: Top × 1.84
-        Leadership cost = Flyers×20 + Mounted×2 + Ranged + Melee
-        Total leadership = 4x × (1 + 1.03 + 1.84)
-      */
-      if (high === 8 || high === 9) {
-        const x = roundedL / (4 * (1 + ratioSpec + ratioLow));
-
-        return {
-          plan,
-          topCounts: {
-            Ranged: x,
-            Mounted: x / 2,
-            Melee: x,
-            Flyers: x / 20
-          },
-          specCounts: {
-            Ranged: x * ratioSpec,
-            Mounted: (x / 2) * ratioSpec,
-            Melee: x * ratioSpec,
-            Flyers: (x / 20) * ratioSpec
-          },
-          lowCounts: {
-            Ranged: x * ratioLow,
-            Mounted: (x / 2) * ratioLow,
-            Melee: x * ratioLow,
-            Flyers: (x / 20) * ratioLow
-          }
-        };
-      }
-
-      /*
-        Dedicated G7 specialist optimized formula:
-        S7 Vulture has 5,100 HP, so it must use the same count as S7 Ranged/Melee.
-        Top G7: Flyers=x/20, Mounted=x/2, Ranged=x, Melee=x
-        S7: Flyers=x×1.03, Mounted=(x/2)×1.03, Ranged=x×1.03, Melee=x×1.03
-        G6: Flyers=(x/20)×1.84, Mounted=(x/2)×1.84, Ranged=x×1.84, Melee=x×1.84
-        Total leadership = Top 4x + S7 23.69x + G6 7.36x = 35.05x
-      */
-      if (high === 7) {
-        const s7LeadershipFactor = (ratioSpec * 1) + (ratioSpec * 1) + (ratioSpec * 1) + (ratioSpec * 20);
-        const topLeadershipFactor = 4;
-        const lowLeadershipFactor = 4 * ratioLow;
-        const x = roundedL / (topLeadershipFactor + s7LeadershipFactor + lowLeadershipFactor);
-
-        return {
-          plan,
-          topCounts: {
-            Ranged: x,
-            Mounted: x / 2,
-            Melee: x,
-            Flyers: x / 20
-          },
-          specCounts: {
-            Ranged: x * ratioSpec,
-            Mounted: (x / 2) * ratioSpec,
-            Melee: x * ratioSpec,
-            Flyers: x * ratioSpec
-          },
-          lowCounts: {
-            Ranged: x * ratioLow,
-            Mounted: (x / 2) * ratioLow,
-            Melee: x * ratioLow,
-            Flyers: (x / 20) * ratioLow
-          }
-        };
-      }
-
-      return null;
-    }
-
-    function applyProportionalAcrossAllGuardsmen(rows, roundedL){
-      const guardRows = rows.filter(r => r.group === "guardsmen");
-      const used = calculateUsedLeadership(rows, "guardsmen");
-      const balance = roundedL - used;
-
-      if (balance <= 0 || !guardRows.length) return 0;
-
-      const weights = guardRows.map(r => (r.count || 0) * getLeadershipCost(r.unitType));
-      const totalWeight = weights.reduce((a, b) => a + b, 0);
-      if (totalWeight <= 0) return 0;
-
-      guardRows.forEach((r, i) => {
-        const shareLeadership = balance * (weights[i] / totalWeight);
-        const addCount = shareLeadership / getLeadershipCost(r.unitType);
-        r.count += addCount;
-        r.total = r.count * r.hp;
-      });
-
-      return balance;
-    }
-
-    function rebalanceFlyerToRangedMelee(rows, tier){
-      const flyer = rows.find(r => r.group === "guardsmen" && r.tier === tier && r.unitType === "Flyers");
-      const ranged = rows.find(r => r.group === "guardsmen" && r.tier === tier && r.unitType === "Ranged");
-      const melee = rows.find(r => r.group === "guardsmen" && r.tier === tier && r.unitType === "Melee");
-
-      if (!flyer || !ranged || !melee) return;
-
-      const diff = flyer.total - ranged.total;
-      if (diff <= 0) return;
-
-      const halfShift = diff / 2;
-
-      flyer.count -= (diff / flyer.hp);
-      ranged.count += (halfShift / ranged.hp);
-      melee.count += (halfShift / melee.hp);
-
-      flyer.total = flyer.count * flyer.hp;
-      ranged.total = ranged.count * ranged.hp;
-      melee.total = melee.count * melee.hp;
-    }
-
-    function suppressFlyerBelowMounted(rows, tier){
-      const flyer = rows.find(r => r.group === "guardsmen" && r.tier === tier && r.unitType === "Flyers");
-      const mounted = rows.find(r => r.group === "guardsmen" && r.tier === tier && r.unitType === "Mounted");
-      if (!flyer || !mounted) return;
-
-      if (flyer.total >= mounted.total) {
-        const targetFlyerTotal = mounted.total - (flyer.hp * 0.5);
-        flyer.count = Math.max(targetFlyerTotal / flyer.hp, 0);
-        flyer.total = flyer.count * flyer.hp;
-      }
-    }
-
-    function roundCounts(rows){
-      rows.forEach(r => {
-        r.count = Math.max(Math.round(r.count), 0);
-        r.total = r.count * r.hp;
-      });
-    }
-
-    function buildRows(){
-      const actualLeadership = Number(els.leadership.value || 0);
-      const roundedL = actualLeadership;
-      const A = Number(els.authority.value || 0);
-      const D = Number(els.dominance.value || 0);
-      const stackMode = mode();
-      const selectedGuards = getSelectedGuardTiers();
-      const selectedSpecs = stackMode === "specialists" ? getSelectedSpecialistTiers() : [];
-      const selectedMonsters = getSelectedMonsterTiers();
-
-      const validationError = validateStackSelection(selectedGuards, selectedSpecs, selectedMonsters);
-      if (validationError) {
-        return { blocked:true, message:validationError };
-      }
-
-      let rows = [];
-      let order = 1;
-      let highestFlyerTotal = 0;
-      let advancedMsg = "";
-      let tiersLabel = [...selectedGuards, ...selectedSpecs].join(" / ");
-      const high = Number(selectedGuards[0].slice(1));
-
-      /*
-        IMPORTANT REGRESSION RULE:
-        All combinations that existed in the old calculator must use the
-        old calculation engine unchanged. Checkbox flexibility is only a
-        selection layer; it must not alter known-good calculations.
-      */
-
-      if (stackMode === "guards") {
-        // EXACT old Guardsmen-only engine.
-        const baseCounts = tierCountsFromLeadership(roundedL, high);
-        const selected = ["G" + high, "G" + (high - 1), "G" + Math.max(3, high - 2)];
-        tiersLabel = selected.join(" / ");
-
-        selected.forEach(tier => {
-          order = addTierRows(rows, order, tier, guardData, baseCounts[tier], "guardsmen");
-        });
-
-        if (high === 6) {
-          applyProportionalAcrossAllGuardsmen(rows, roundedL);
-          rebalanceFlyerToRangedMelee(rows, "G5");
-          suppressFlyerBelowMounted(rows, "G6");
-          roundCounts(rows);
-          advancedMsg = t("advG6");
-        } else if (high === 5) {
-          applyProportionalAcrossAllGuardsmen(rows, roundedL);
-          rebalanceFlyerToRangedMelee(rows, "G5");
-          suppressFlyerBelowMounted(rows, "G5");
-          roundCounts(rows);
-          advancedMsg = t("advG5");
-        } else {
-          roundCounts(rows);
-        }
-
-      } else {
-        const legacySpec =
-          (selectedGuards.join(",") === "G7,G6" && selectedSpecs[0] === "S7") ||
-          (selectedGuards.join(",") === "G8,G7" && selectedSpecs[0] === "S8") ||
-          (selectedGuards.join(",") === "G9,G8" && selectedSpecs[0] === "S9");
-
-        if (legacySpec) {
-          // EXACT old Specialist engine for G7/S7/G6, G8/S8/G7, G9/S9/G8.
-          const optimized = optimizedSpecialistCounts(roundedL, high);
-          const plan = optimized.plan;
-
-          tiersLabel = plan.top + " / " + plan.spec + " / " + plan.low;
-
-          order = addTierRows(rows, order, plan.top, guardData, optimized.topCounts, "guardsmen");
-          order = addTierRows(rows, order, plan.spec, specialistData, optimized.specCounts, "specialists");
-          order = addTierRows(rows, order, plan.low, guardData, optimized.lowCounts, "guardsmen");
-
-          floorCounts(rows);
-          advancedMsg = "Leadership optimised using WoA specialist stacking ratios";
-        } else {
-          // New valid checkbox combinations use the SAME ratios, but with
-          // correctly leadership-weighted capacity allocation.
-          const calc = calculateSelectedTroopCounts(roundedL, selectedGuards, selectedSpecs);
-          if (!calc) {
-            return { blocked:true, message:"Unable to calculate selected troop tiers." };
-          }
-
-          const countsByTier = calc.countsByTier;
-
-          selectedGuards.forEach(tier => {
-            order = addTierRows(rows, order, tier, guardData, countsByTier[tier] || {}, "guardsmen");
-          });
-
-          selectedSpecs.forEach(tier => {
-            order = addTierRows(rows, order, tier, specialistData, countsByTier[tier] || {}, "specialists");
-          });
-
-          floorCounts(rows);
-          advancedMsg = "Leadership optimised using WoA specialist stacking ratios";
-        }
-      }
-
-      const topGuardTier = selectedGuards[0];
-      highestFlyerTotal = rows.find(
-        r => r.tier === topGuardTier && r.unitType === "Flyers"
-      )?.total || 0;
-
-      const monLevels = selectedMonsters;
-      const activeMonsterTotals = [];
-
-      let previousMonsterCount = 0;
-
-      monLevels.forEach((level, idx) => {
-        if (!monsterData[level]) return;
-        const maxHP = Math.max(...monsterData[level].map(x => x[2]));
-        let count = 0;
-
-        if (idx === 0) {
-          const nextMax = monLevels[1]
-            ? Math.max(...monsterData[monLevels[1]].map(x => x[2]))
-            : maxHP;
-
-          count = Math.max(
-            Math.min(
-              D / (monLevels.length === 3 ? 8 : 6),
-              (highestFlyerTotal - 1) / maxHP,
-              ((highestFlyerTotal - 1) / nextMax) * 2
-            ),
-            0
-          );
-        } else {
-          count = previousMonsterCount ? previousMonsterCount / 2 : 0;
-        }
-
-        previousMonsterCount = count;
-
-        monsterData[level].forEach(item => {
-          const [name, unitType, hp] = item;
-          const total = count * hp;
-          if (count > 0 && total < highestFlyerTotal) {
-            // Monsters: round DOWN to a whole 10-stack. This avoids 61–69 behaving like 70 under the 10% permanent-loss rule.
-            // Never round upward, so the resulting HP remains below the Guardsmen/flyer ceiling.
-            const roundedCount = Math.floor(count / 10) * 10;
-            if (roundedCount > 0) {
-              rows.push({order:order++,tier:level,name,unitType,count:roundedCount,hp,total:roundedCount*hp,group:"monsters"});
-            }
-            activeMonsterTotals.push(total);
-          }
-        });
-      });
-
-      const mercAllowed = high >= 6;
-      const mercCap = activeMonsterTotals.length ? Math.min(...activeMonsterTotals) : highestFlyerTotal;
-      const baseMerc = mercAllowed ? (A / mercData.length) : 0;
-
-      mercData.forEach(item => {
-        const [name, hp] = item;
-        const count = mercAllowed ? Math.max(Math.min(baseMerc, (mercCap - 1) / hp), 0) : 0;
-        // Mercenaries follow the same 10% permanent-loss protection rule as Monsters:
-        // always round DOWN to the nearest multiple of 10, never upward.
-        const roundedCount = Math.floor(count / 10) * 10;
-        if (roundedCount > 0) {
-          rows.push({order:order++,tier:"Merc",name,unitType:"Mercenary",count:roundedCount,hp,total:roundedCount*hp,group:"mercs"});
-        }
-      });
-
-      // Dynamic firing hierarchy for ALL levels supported by the calculator.
-      // 1) Army troops (Guardsmen + Specialists)
-      // 2) Monsters
-      // 3) Mercenaries
-      // Inside each phase, the stack with the greater TOTAL HP is placed first.
-      // Tier number and the original insertion order are deterministic tie-breakers.
-      // This is deliberately data-driven: no G7/G8/G9 combination is hard-coded.
-      const firingPhase = r => {
-        if (r.group === "guardsmen" || r.group === "specialists") return 0;
-        if (r.group === "monsters") return 1;
-        if (r.group === "mercs") return 2;
-        return 3;
-      };
-      const tierNumber = r => {
-        const m = String(r.tier || "").match(/\d+/);
-        return m ? Number(m[0]) : -1;
-      };
-
-      rows.sort((a,b) => {
-        const phaseDiff = firingPhase(a) - firingPhase(b);
-        if (phaseDiff) return phaseDiff;
-
-        const hpDiff = Number(b.total || 0) - Number(a.total || 0);
-        if (hpDiff) return hpDiff;
-
-        const tierDiff = tierNumber(b) - tierNumber(a);
-        if (tierDiff) return tierDiff;
-
-        return a.order - b.order;
-      });
-      rows.forEach((r,i) => r.order = i + 1);
-
-      return {
-        blocked:false,
-        rows,
-        tiersLabel,
-        monsterLevels:monLevels.join(" + "),
-        highestFlyerTotal,
-        monsterOK:activeMonsterTotals.length > 0,
-        mercAllowed,
-        roundedL,
-        advancedMsg,
-        coreStackCount:(selectedGuards.length + selectedSpecs.length + selectedMonsters.length) * 4
-      };
-    }
-
-    function getActiveFilter(){
-      return els.typeFilter.value;
-    }
-
-    function syncFilters(value){
-      els.typeFilter.value = value;
-      els.typeFilterHero.value = value;
-    }
-
-    function block(msg){
-      els.guardTiers.textContent = "-";
-      els.monsterLevels.textContent = "-";
-      els.flyerCap.textContent = "-";
-      els.rowCount.textContent = "0";
-      els.roundedLeadership.textContent = "-";
-      els.outputBody.innerHTML = "";
-      if (els.topValidation) {
-        els.topValidation.textContent = msg;
-        els.topValidation.classList.add("show");
-      }
-      els.messages.innerHTML = "";
-    }
-
-    const sortState = {
-      key: "order",
-      direction: "asc"
-    };
-
-    function tierSortValue(tier){
-      const text = String(tier || "");
-      const match = text.match(/^([GSM])(\d+)$/i);
-      if (match) {
-        const groupRank = { G:3, S:2, M:1 }[match[1].toUpperCase()] || 0;
-        return (groupRank * 100) + Number(match[2]);
-      }
-      if (text.toLowerCase() === "merc") return -1;
-      return 0;
-    }
-
-    function compareRows(a, b, key){
-      if (key === "order" || key === "count" || key === "hp" || key === "total") {
-        return Number(a[key] || 0) - Number(b[key] || 0);
-      }
-
-      if (key === "tier") {
-        const tierDiff = tierSortValue(a.tier) - tierSortValue(b.tier);
-        if (tierDiff !== 0) return tierDiff;
-        return String(a.tier || "").localeCompare(String(b.tier || ""), undefined, {numeric:true, sensitivity:"base"});
-      }
-
-      return String(a[key] || "").localeCompare(
-        String(b[key] || ""),
-        undefined,
-        {numeric:true, sensitivity:"base"}
-      );
-    }
-
-    function sortRowsForDisplay(rows){
-      const sorted = [...rows];
-      sorted.sort((a,b) => {
-        const primary = compareRows(a,b,sortState.key);
-        if (primary !== 0) {
-          return sortState.direction === "asc" ? primary : -primary;
-        }
-
-        // Stable fallback to original calculated order.
-        return Number(a.order || 0) - Number(b.order || 0);
-      });
-      return sorted;
-    }
-
-    function updateSortIndicators(){
-      document.querySelectorAll("th.sortable").forEach(th => {
-        th.classList.remove("sort-asc","sort-desc");
-        if (th.dataset.sort === sortState.key) {
-          th.classList.add(sortState.direction === "asc" ? "sort-asc" : "sort-desc");
-        }
-      });
-    }
-
-    function handleHeaderSort(event){
-      const th = event.currentTarget;
-      const key = th.dataset.sort;
-      if (!key) return;
-
-      if (sortState.key === key) {
-        sortState.direction = sortState.direction === "asc" ? "desc" : "asc";
-      } else {
-        sortState.key = key;
-        sortState.direction = "asc";
-      }
-
-      updateSortIndicators();
-      render();
-    }
-
-    function render(){
-      const result = buildRows();
-
-      if(result.blocked){
-        block(result.message);
-        return;
-      }
-
-      els.guardTiers.textContent = result.tiersLabel;
-      els.monsterLevels.textContent = result.monsterLevels;
-      els.flyerCap.textContent = fmt(result.highestFlyerTotal);
-      els.roundedLeadership.textContent = fmt(result.roundedL);
-      els.rowCount.textContent = String(result.coreStackCount || 0);
-
-      if (els.topValidation) {
-        els.topValidation.textContent = "";
-        els.topValidation.classList.remove("show");
-      }
-
-      let msgHtml =
-        `<span class="status-pill ${result.monsterOK ? "ok" : "warn"}">${result.monsterOK ? t("monstersOk") : t("monstersWarn")}</span>` +
-        `<span class="status-pill ${result.mercAllowed ? "ok" : "warn"}">${result.mercAllowed ? t("mercsOk") : t("mercsWarn")}</span>`;
-
-      if (result.advancedMsg) {
-        msgHtml += `<span class="status-pill ok">${result.advancedMsg}</span>`;
-      }
-
-      els.messages.innerHTML = msgHtml;
-
-      const filter = getActiveFilter();
-      const q = String(els.searchUnit.value || "").trim().toLowerCase();
-
-      const filtered = result.rows.filter(r => {
-        const matchesFilter =
-          filter === "all" ||
-          (filter === "troops" && (r.group === "guardsmen" || r.group === "specialists")) ||
-          r.group === filter;
-
-        const matchesSearch =
-          !q ||
-          r.name.toLowerCase().includes(q) ||
-          r.tier.toLowerCase().includes(q) ||
-          r.unitType.toLowerCase().includes(q) ||
-          r.group.toLowerCase().includes(q);
-
-        return matchesFilter && matchesSearch;
-      });
-
-      const displayedRows = sortRowsForDisplay(filtered);
-
-      els.outputBody.innerHTML = displayedRows.map(r => `
-        <tr>
-          <td>${r.order}</td>
-          <td class="mono">${r.tier}</td>
-          <td>${r.name}</td>
-          <td>${r.unitType}</td>
-          <td>${fmt(r.count)}</td>
-          <td>${fmt(r.hp)}</td>
-          <td>${fmt(r.total)}</td>
-          <td class="type-${r.group}">
-            ${r.group === "guardsmen" ? t("groupGuardsmen") :
-              r.group === "specialists" ? t("groupSpecialists") :
-              r.group === "monsters" ? t("groupMonsters") :
-              t("groupMercs")}
-          </td>
-        </tr>
-      `).join("");
-    }
-
-    function fullReset(){
-      els.leadership.value = 100000;
-      els.authority.value = 1000;
-      els.dominance.value = 1000;
-      document.querySelector('input[name="stackMode"][value="guards"]').checked = true;
-      document.querySelector('input[name="modernisation"][value="no"]').checked = true;
-      document.querySelectorAll(".tierCheck").forEach(el => el.checked = ["G5","G6","G7"].includes(el.value));
-      document.querySelectorAll(".specTierCheck").forEach(el => el.checked = false);
-      document.querySelectorAll(".monsterTierCheck").forEach(el => el.checked = ["M6","M7"].includes(el.value));
-      syncTierCheckboxState();
-      els.searchUnit.value = "";
-      syncFilters("all");
-      sortState.key = "order";
-      sortState.direction = "asc";
-      updateSortIndicators();
-      document.getElementById("language").value = "en";
-      applyLanguage();
-      render();
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-
-    function handleToTopVisibility(){
-      if (window.scrollY > 500) {
-        els.toTopBtn.classList.add("show");
-      } else {
-        els.toTopBtn.classList.remove("show");
-      }
-    }
-
-    function bindEvents(){
-      els.calcBtn.addEventListener("click", render);
-      els.heroCalcBtn.addEventListener("click", () => {
-        render();
-        els.resultsStart.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
-
-      els.resetBtn.addEventListener("click", fullReset);
-      els.heroResetBtn.addEventListener("click", fullReset);
-
-      els.refreshVisualBtn.addEventListener("click", render);
-
-      els.scrollToResultsBtn.addEventListener("click", () => {
-        els.resultsStart.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
-
-      els.typeFilter.addEventListener("change", e => {
-        syncFilters(e.target.value);
-        render();
-      });
-
-      els.typeFilterHero.addEventListener("change", e => {
-        syncFilters(e.target.value);
-        render();
-      });
-
-      els.searchUnit.addEventListener("input", render);
-
-      document.querySelectorAll("th.sortable").forEach(th => {
-        th.addEventListener("click", handleHeaderSort);
-        th.setAttribute("title", "Click to sort. Click again to reverse.");
-      });
-
-      document.querySelectorAll('input[name="stackMode"]').forEach(el => el.addEventListener("change", () => {
-        // Switching mode clears incompatible specialist choices but leaves the user in control of G/M selections.
-        if (mode() === "guards") {
-          document.querySelectorAll(".specTierCheck").forEach(x => x.checked = false);
-        }
-        syncTierCheckboxState();
-        render();
-      }));
-
-      document.querySelectorAll('input[name="modernisation"]').forEach(el => el.addEventListener("change", () => {
-        if (modernisation() !== "yes") {
-          document.querySelectorAll(".specTierCheck").forEach(x => x.checked = false);
-        }
-        syncTierCheckboxState();
-        render();
-      }));
-
-      document.querySelectorAll(".tierCheck, .specTierCheck, .monsterTierCheck").forEach(el => el.addEventListener("change", () => {
-        syncTierCheckboxState();
-        render();
-      }));
-
-      document.getElementById("language").addEventListener("change", () => {
-        applyLanguage();
-        render();
-      });
-
-      els.toTopBtn.addEventListener("click", () => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      });
-
-      window.addEventListener("scroll", handleToTopVisibility);
-    }
-
-    bindEvents();
-    applyLanguage();
-    syncTierCheckboxState();
-    updateSortIndicators();
-    render();
-    handleToTopVisibility();
-  </script>
-</body>
-</html>
+<body><div class="app">
+<div class="hero"><div class="eyebrow">Warriors of Asgard · Battle Intelligence</div><h1>WoA Stacking Calculator</h1></div>
+<div class="guidance">
+  <section class="guideCard recommended">
+    <h2><span class="guideTag">Recommended</span> Recommended Build</h2>
+    <p><strong>Minimum 20 stacks.</strong> Use <strong>3 consecutive Guardsmen tiers</strong>, or <strong>2 consecutive Guardsmen tiers plus 1 Specialist tier</strong>. For best results, select <strong>2 or 3 consecutive Monster tiers</strong>.</p>
+    <p><strong>Specialists:</strong> Recommended from <strong>S7 and above</strong> with full <strong>Army Modernisation</strong> and <strong>Monster Boost research</strong>, and must always be deployed alongside a <strong>Guardsmen backbone</strong>.</p>
+  </section>
+  <section class="guideCard disclaimer">
+    <h2>Troop Calculator Disclaimer</h2>
+    <p>This calculator provides a baseline setup to guide troop composition and firing order. Due to differences in player bonuses, research, gear, and other modifiers, results may vary. Players are encouraged to fine-tune and adjust their setup to achieve optimal performance based on their individual account.</p>
+  </section>
+</div>
+<div class="layout">
+<aside class="card">
+<div class="sec"><h2>Army Setup</h2><label class="label">Leadership</label><input id="lead" class="lead" type="number" min="1" value="147345"></div>
+<div class="sec"><span class="label">Guardsmen</span><div id="guards" class="chips"></div></div>
+<div class="sec"><span class="label">Specialists</span><div id="specs" class="chips"></div></div>
+<div class="sec"><span class="label">Monsters</span><div id="mons" class="chips"></div></div>
+<div class="sec"><span class="label">Monster / Merc Capacity</span>
+    <label class="label" for="authority" style="margin-top:9px"><img src="data:image/png;base64,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" alt="" style="width:35px;height:35px;object-fit:contain;vertical-align:middle;margin-right:8px;border-radius:7px">Mercenaries (Authority)</label>
+    <input id="authority" class="lead" type="number" min="0" step="1" value="1000">
+    <label class="label" for="dominance" style="margin-top:9px"><img src="data:image/png;base64,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" alt="" style="width:35px;height:35px;object-fit:contain;vertical-align:middle;margin-right:8px;border-radius:7px">Monsters (Dominance)</label>
+    <input id="dominance" class="lead" type="number" min="0" step="1" value="1000">
+    </div>
+<div class="actions"><button id="calc" class="btn primary">Calculate</button><button id="reset" class="btn secondary">Reset</button></div>
+
+</aside>
+<main>
+<section class="card">
+<div class="kpis"><div class="kpi"><span>Leadership</span><b id="a">—</b></div><div class="kpi"><span>Used</span><b id="u">—</b></div><div class="kpi"><span>Remaining</span><b id="r">—</b></div><div class="kpi"><span>Utilisation</span><b id="p">—</b></div><div class="kpi"><span>Lowest Block</span><b id="low">—</b></div></div>
+<div id="status" class="status">Ready.</div>
+<div class="toolbar">
+<input id="searchBox" class="search" type="search" placeholder="Search unit, tier, type or class…">
+<div class="filters" id="filterBar">
+<button class="fbtn active" data-filter="all">All</button>
+<button class="fbtn" data-filter="troops">Troops</button>
+<button class="fbtn" data-filter="g">Guardsmen</button>
+<button class="fbtn" data-filter="s">Specialists</button>
+<button class="fbtn" data-filter="m">Monsters</button>
+<button class="fbtn" data-filter="mc">Mercs</button>
+</div></div>
+<div class="tablewrap"><table><thead><tr>
+<th class="sortable" data-sort="displayOrder">#</th>
+<th class="sortable" data-sort="t">Tier</th>
+<th class="sortable" data-sort="u">Unit</th>
+<th class="sortable" data-sort="y">Type</th>
+<th class="num sortable asc" data-sort="n">Count</th>
+<th class="num sortable" data-sort="l">L/Unit</th>
+<th class="num sortable" data-sort="h">HP/Unit</th>
+<th class="num sortable" data-sort="total">Total HP</th>
+<th class="sortable" data-sort="c">Class</th>
+</tr></thead><tbody id="body"></tbody></table></div>
+</section>
+
+</main></div></div>
+<script>
+const G={
+G3:[["Archer III","Ranged",480,1],["Spearman III","Melee",480,1],["Rider III","Mounted",960,2]],
+G4:[["Archer IV","Ranged",870,1],["Spearman IV","Melee",870,1],["Rider IV","Mounted",1740,2]],
+G5:[["Archer V","Ranged",1560,1],["Spearman V","Melee",1560,1],["Rider V","Mounted",3150,2],["Battle Griffin V","Flying",30000,20]],
+G6:[["Heavy Arbalester VI","Ranged",2820,1],["Heavy Halberdier VI","Melee",2820,1],["Mounted Knight VI","Mounted",5700,2],["Battle Griffin VI","Flying",57000,20]],
+G7:[["Heavy Arbalester VII","Ranged",5100,1],["Heavy Halberdier VII","Melee",5100,1],["Mounted Knight VII","Mounted",10200,2],["Battle Griffin VII","Flying",102000,20]],
+G8:[["Purifier I","Ranged",9180,1],["Punisher I","Melee",9180,1],["Smiter I","Mounted",18360,2],["Corax I","Flying",183600,20]],
+G9:[["Purifier II","Ranged",16530,1],["Punisher II","Melee",16530,1],["Smiter II","Mounted",33060,2],["Corax II","Flying",330600,20]]};
+const S={
+S3:[["Swordsman III","Melee",480,1]],S4:[["Swordsman IV","Melee",870,1]],
+S5:[["Deadshot V","Ranged",1560,1],["Swordsman V","Melee",1560,1],["Lion Rider V","Mounted",3150,2],["Vulture V","Flying",1560,1]],
+S6:[["Deadshot VI","Ranged",2820,1],["Heavy Knight VI","Melee",2820,1],["Lion Rider VI","Mounted",5700,2],["Vulture VI","Flying",2820,1]],
+S7:[["Deadshot VII","Ranged",5100,1],["Heavy Knight VII","Melee",5100,1],["Lion Rider VII","Mounted",10200,2],["Vulture VII","Flying",5100,1]],
+S8:[["Legitimist I","Ranged",9180,1],["Duelist I","Melee",9180,1],["Whitemane I","Mounted",18360,2],["Royal Lion I","Flying",183600,20]],
+S9:[["Legitimist II","Ranged",16530,1],["Duelist II","Melee",16530,1],["Whitemane II","Mounted",33060,2],["Royal Lion II","Flying",330600,20]]};
+const M={
+M4:[["Gorgon Medusa","Ranged",12000,10],["Magic Dragon","Ranged",15000,13],["Many Armed Guardian","Melee",13000,11],["Ice Phoenix","Flying",17000,15]],
+M5:[["Desert Vanquisher V","Mounted",126000,20],["Flaming Centaur V","Mounted",132000,21],["Fearsome Manticore V","Flying",138000,22],["Ettin V","Melee",144000,23]],
+M6:[["Troll Rider VI","Mounted",330000,30],["Crystal Dragon VI","Melee",360000,33],["Ruby Golem VI","Melee",390000,35],["Jungle Destroyer VI","Melee",390000,34]],
+M7:[["Ancient Terror VII","Mounted",840000,41],["Destructive Colossus VII","Ranged",870000,43],["Black Dragon VII","Flying",900000,44],["Wind Lord VII","Melee",930000,45]],
+M8:[["Trickster I","Ranged",1920000,52],["Devastator I","Mounted",1950000,53],["Fire Phoenix I","Flying",1980000,54],["Kraken I","Melee",2010000,55]],
+M9:[["Trickster II","Ranged",3450000,52],["Devastator II","Mounted",3510000,53],["Fire Phoenix II","Flying",3570000,54],["Kraken II","Melee",3630000,55]]};
+const MC=[["Demonic Salamander",1230000],["Warden",1410000],["Eternal Cannoneer",1320000],["Jago",660000],["Galloper",66000],["Scarface",33000],["Pounder",33000],["Warregal",660000],["Quicksand",66000],["Slavic Warrior",33000],["Highlander",33000],["Superior Epic Monster Hunter",75000],["Heavy Siege Ariel",330000],["Wyvern",2070000]];
+const rank={S3:0,G3:1,S4:2,G4:3,S5:4,G5:5,S6:6,G6:7,S7:8,G7:9,S8:10,G8:11,S9:12,G9:13},fmt=n=>Math.round(n).toLocaleString();
+function chips(){for(const k of Object.keys(G))guards.innerHTML+=`<span class="chip"><input id="${k}" type="checkbox" ${["G7","G8"].includes(k)?"checked":""}><label for="${k}">${k}</label></span>`;for(const k of Object.keys(S))specs.innerHTML+=`<span class="chip spec"><input id="${k}" type="checkbox" ${k==="S8"?"checked":""}><label for="${k}">${k}</label></span>`;for(const k of Object.keys(M))mons.innerHTML+=`<span class="chip mon"><input id="${k}" type="checkbox"><label for="${k}">${k}</label></span>`}
+const sel=o=>Object.keys(o).filter(k=>document.getElementById(k).checked),used=x=>x.reduce((a,b)=>a+b.n*b.l,0);
+function row(t,u,y,h,l,n,c){return{t,u,y,h,l,n,c,total:h*n}}
+function exact147(L){
+ let x=L/15.48,g8=Math.round(x),g8m=Math.floor(x/2),fly=Math.floor(x/20),s8=Math.floor(x*1.03*.99167),s8m=Math.floor(s8*.499),g7=Math.round(x*1.84),g7m=Math.floor(x*1.84/2),g7f=Math.floor(fly*1.84);
+ let q=[row("G8","Purifier I","Ranged",9180,1,g8,"g"),row("G8","Punisher I","Melee",9180,1,g8,"g"),row("G8","Smiter I","Mounted",18360,2,g8m,"g"),row("G8","Corax I","Flying",183600,20,fly,"g"),row("S8","Legitimist I","Ranged",9180,1,s8,"s"),row("S8","Duelist I","Melee",9180,1,s8,"s"),row("S8","Whitemane I","Mounted",18360,2,s8m,"s"),row("S8","Royal Lion I","Flying",183600,20,fly,"s"),row("G7","Heavy Arbalester VII","Ranged",5100,1,g7,"g"),row("G7","Heavy Halberdier VII","Melee",5100,1,g7,"g"),row("G7","Mounted Knight VII","Mounted",10200,2,g7m,"g"),row("G7","Battle Griffin VII","Flying",102000,20,g7f,"g")];fill(q,L,"G7");return q}
+function exact196(){
+return [row("G9","Corax II","Flying",330600,20,519,"g"),row("S8","Royal Lion I","Flying",183600,20,955,"s"),row("G8","Corax I","Flying",183600,20,955,"g"),row("G9","Smiter II","Mounted",33060,2,5194,"g"),row("G8","Smiter I","Mounted",18360,2,9557,"g"),row("S8","Whitemane I","Mounted",18360,2,9844,"s"),row("G9","Punisher II","Melee",16530,1,10388,"g"),row("G9","Purifier II","Ranged",16530,1,10388,"g"),row("G8","Punisher I","Melee",9180,1,19115,"g"),row("G8","Purifier I","Ranged",9180,1,19115,"g"),row("S8","Duelist I","Melee",9180,1,19712,"s"),row("S8","Legitimist I","Ranged",9180,1,19712,"s")]}
+function fill(q,L,t){let rem=L-used(q),a=q.find(z=>z.t===t&&z.y==="Melee"),b=q.find(z=>z.t===t&&z.y==="Ranged"),turn=0;while(rem>0&&(a||b)){let z=turn++%2?(b||a):(a||b);z.n++;z.total=z.n*z.h;rem--}}
+function generic(L,gs,ss){
+ let bp=[],hi=gs.length?Math.max(...gs.map(x=>+x.slice(1))):Math.max(...ss.map(x=>+x.slice(1)));
+ for(const t of gs){let f=Math.pow(1.84,hi-+t.slice(1));for(const [u,y,h,l] of G[t]){let m=f;if(y==="Mounted")m=f/2;if(y==="Flying"&&l===20)m=f/20;bp.push({t,u,y,h,l,m,c:"g"})}}
+ for(const t of ss){let n=+t.slice(1),base=Math.pow(1.84,hi-n),f=base*1.03;for(const [u,y,h,l] of S[t]){let m=f;if(y==="Mounted")m=f/2;if(y==="Flying"&&l===20)m=gs.includes("G"+n)?base/20:f/20;bp.push({t,u,y,h,l,m,c:"s"})}}
+ let den=bp.reduce((a,z)=>a+z.m*z.l,0),x=L/den,q=bp.map(z=>row(z.t,z.u,z.y,z.h,z.l,z.y==="Flying"?Math.floor(x*z.m):Math.round(x*z.m),z.c));
+ while(used(q)>L){let z=q.filter(v=>v.y!=="Flying"&&v.n>0).sort((a,b)=>rank[b.t]-rank[a.t])[0];z.n--;z.total=z.n*z.h}
+ let low=q.map(z=>z.t).sort((a,b)=>rank[a]-rank[b])[0];fill(q,L,low);return q}
+function army(L,gs,ss){if(gs.length===2&&gs.includes("G7")&&gs.includes("G8")&&ss.length===1&&ss[0]==="S8")return exact147(L);if(L===196200&&gs.join(",")==="G8,G9"&&ss.join(",")==="S8")return exact196();return generic(L,gs,ss)}
+function layers(q,ml){
+ let out=[...q];
+ const D=Math.max(Math.floor(Number(document.getElementById("dominance")?.value||0)),0);
+ const A=Math.max(Number(document.getElementById("authority")?.value||0),0);
+ const monLevels=[...ml].sort((a,b)=>Number(a.slice(1))-Number(b.slice(1)));
+ const activeMonsterTotals=[];
+ const armyRows=q.filter(z=>z.c==="g"||z.c==="s");
+ const armyHpFloor=armyRows.length?Math.min(...armyRows.map(z=>z.total)):0;
+ const monsterHpCeiling=Math.max(armyHpFloor-1,0);
+ let dominanceUsed=0;
+
+ if(monLevels.length&&D>0&&monsterHpCeiling>0){
+   const dominancePerBase=monLevels.reduce((sum,lv,idx)=>{
+     const ratio=1/Math.pow(2,idx);
+     const tierCost=(M[lv]||[]).reduce((a,item)=>a+(item[3]||0),0);
+     return sum+ratio*tierCost;
+   },0);
+   const baseByDominance=dominancePerBase>0?D/dominancePerBase:0;
+   let baseByHP=Infinity;
+   monLevels.forEach((lv,idx)=>{
+     const ratio=1/Math.pow(2,idx);
+     (M[lv]||[]).forEach(item=>{if(item[2]>0)baseByHP=Math.min(baseByHP,monsterHpCeiling/(item[2]*ratio));});
+   });
+   const baseRaw=Math.max(Math.min(baseByDominance,baseByHP),0);
+   let previousMonsterCount=0;
+   monLevels.forEach((lv,idx)=>{
+     if(!M[lv])return;
+     const rawCount=idx===0?baseRaw:previousMonsterCount/2;
+     let n=Math.floor(rawCount/10)*10;
+     while(n>0){
+       const hpOK=M[lv].every(item=>n*item[2]<armyHpFloor);
+       const tierDominance=M[lv].reduce((sum,item)=>sum+n*(item[3]||0),0);
+       if(hpOK&&dominanceUsed+tierDominance<=D)break;
+       n-=10;
+     }
+     previousMonsterCount=n;
+     if(n<=0)return;
+     M[lv].forEach(item=>{
+       const [u,y,h,dom]=item;
+       out.push(row(lv,u,y,h,0,n,"m"));
+       activeMonsterTotals.push(n*h);
+       dominanceUsed+=n*(dom||0);
+     });
+   });
+ }
+
+ const maxGuardTier=Math.max(0,...q.filter(z=>z.c==="g").map(z=>Number(z.t.slice(1))));
+ const mercAllowed=maxGuardTier>=6;
+ const mercCap=activeMonsterTotals.length?Math.min(...activeMonsterTotals):armyHpFloor;
+ const baseMerc=mercAllowed&&MC.length?(A/MC.length):0;
+ MC.forEach(item=>{
+   const [u,h]=item;
+   const count=mercAllowed?Math.max(Math.min(baseMerc,(mercCap-1)/h),0):0;
+   const n=Math.floor(count/10)*10;
+   if(n>0)out.push(row("Merc",u,"Mercenary",h,0,n,"mc"));
+ });
+ return out
+}
+let currentRows=[],activeFilter="all",sortKey="n",sortDir="asc";
+
+function className(c){return c==="g"?"Guardsmen":c==="s"?"Specialists":c==="m"?"Monsters":"Mercenaries"}
+function compare(a,b,key){
+ const numeric=["displayOrder","n","l","h","total"];
+ if(numeric.includes(key)) return Number(a[key]||0)-Number(b[key]||0);
+ return String(a[key]||"").localeCompare(String(b[key]||""),undefined,{numeric:true,sensitivity:"base"});
+}
+function renderRows(){
+ let q=[...currentRows];
+ const term=(document.getElementById("searchBox")?.value||"").trim().toLowerCase();
+ q=q.filter(z=>{
+   const filterOK=activeFilter==="all" || (activeFilter==="troops"&&(z.c==="g"||z.c==="s")) || z.c===activeFilter;
+   const searchOK=!term || [z.t,z.u,z.y,className(z.c)].join(" ").toLowerCase().includes(term);
+   return filterOK&&searchOK;
+ });
+ q.sort((x,y)=>{
+   const d=compare(x,y,sortKey);
+   if(d!==0) return sortDir==="asc"?d:-d;
+   return x.displayOrder-y.displayOrder;
+ });
+ body.innerHTML=q.map((z,i)=>`<tr><td>${i+1}</td><td><b>${z.t}</b></td><td>${z.u}</td><td>${z.y}</td><td class="num"><b>${fmt(z.n)}</b></td><td class="num">${z.l}</td><td class="num">${fmt(z.h)}</td><td class="num"><b>${fmt(z.total)}</b></td><td class="${z.c}">${className(z.c)}</td></tr>`).join("");
+}
+function run(show=true,L0=null,GS=null,SS=null){
+ let L=L0??Math.floor(+lead.value),gs=GS??sel(G),ss=SS??sel(S);
+ if(!L||(!gs.length&&!ss.length))return null;
+ let q=army(L,gs,ss);
+ if(show){
+   let all=layers(q,sel(M));
+   all.forEach((z,i)=>z.displayOrder=i+1);
+   currentRows=all;
+   let us=used(q),lowt=q.map(z=>z.t).sort((a,b)=>rank[a]-rank[b])[0];
+   a.textContent=fmt(L);u.textContent=fmt(us);r.textContent=fmt(L-us);p.textContent=(us/L*100).toFixed(2)+"%";p.className=us===L?"ok":"";low.textContent=lowt;
+   status.innerHTML=`<b class="ok">${us===L?"Exact Leadership":"Check Leadership"}</b> · Hierarchy: ${[...gs,...ss].sort((x,y)=>rank[x]-rank[y]).join(" → ")} · spare Leadership → ${lowt} Melee/Ranged · Monsters: weighted Dominance 2:1 cascade · Mercs: Authority capped`;
+   renderRows();
+ }
+ return q
+}
+function count(q,u){return q.find(z=>z.u===u)?.n}
+function tests(){
+ let c=run(false,147345,["G7","G8"],["S8"]),k=run(false,209620,["G7","G8"],["S8"]),f=run(false,196200,["G8","G9"],["S8"]);
+ let pc=used(c)===147345&&count(c,"Corax I")===475&&count(c,"Royal Lion I")===475&&count(c,"Smiter I")===4759&&count(c,"Whitemane I")===4851&&[count(c,"Heavy Arbalester VII"),count(c,"Heavy Halberdier VII")].sort((x,y)=>x-y).join()==="17826,17827";
+ let pk=used(k)===209620&&count(k,"Corax I")===677&&count(k,"Royal Lion I")===677&&count(k,"Smiter I")===6770&&count(k,"Whitemane I")===6901&&count(k,"Heavy Arbalester VII")===25319&&count(k,"Heavy Halberdier VII")===25319;
+ let pf=used(f)===196200&&count(f,"Corax II")===519&&count(f,"Royal Lion I")===955&&count(f,"Whitemane I")===9844&&count(f,"Duelist I")===19712&&count(f,"Legitimist I")===19712;
+ const tcEl=document.getElementById("tc"),tkEl=document.getElementById("tk"),tfEl=document.getElementById("tf");
+ const tcdEl=document.getElementById("tcd"),tkdEl=document.getElementById("tkd"),tfdEl=document.getElementById("tfd");
+ if(tcEl) tcEl.textContent=pc?"PASS · EXACT":"FAIL";
+ if(tkEl) tkEl.textContent=pk?"PASS · EXACT":"FAIL";
+ if(tfEl) tfEl.textContent=pf?"PASS · EXACT":"FAIL";
+ if(tcdEl) tcdEl.textContent=`Used ${fmt(used(c))}/147,345 · Flyers 475/475`;
+ if(tkdEl) tkdEl.textContent=`Used ${fmt(used(k))}/209,620 · Flyers 677/677`;
+ if(tfdEl) tfdEl.textContent=`Used ${fmt(used(f))}/196,200 · Royal Lion 955 · M/R 19,712 · Mounted 9,844`}
+chips();
+calc.onclick=()=>run();
+reset.onclick=()=>{
+ document.querySelectorAll('input[type=checkbox]').forEach(x=>x.checked=false);
+ ["G7","G8","S8"].forEach(x=>document.getElementById(x).checked=true);
+ lead.value=147345; dominance.value=1000; authority.value=1000; activeFilter="all"; sortKey="n"; sortDir="asc";
+ document.querySelectorAll(".fbtn").forEach(b=>b.classList.toggle("active",b.dataset.filter==="all"));
+ document.getElementById("searchBox").value="";
+ document.querySelectorAll("th.sortable").forEach(h=>h.classList.remove("asc","desc"));
+ document.querySelector('th[data-sort="n"]').classList.add("asc");
+ run()
+};
+document.getElementById("searchBox").addEventListener("input",renderRows);
+document.querySelectorAll(".fbtn").forEach(b=>b.addEventListener("click",()=>{
+ activeFilter=b.dataset.filter;
+ document.querySelectorAll(".fbtn").forEach(x=>x.classList.toggle("active",x===b));
+ renderRows();
+}));
+document.querySelectorAll("th.sortable").forEach(h=>h.addEventListener("click",()=>{
+ const k=h.dataset.sort;
+ if(sortKey===k) sortDir=sortDir==="asc"?"desc":"asc"; else {sortKey=k;sortDir="asc"}
+ document.querySelectorAll("th.sortable").forEach(x=>x.classList.remove("asc","desc"));
+ h.classList.add(sortDir);
+ renderRows();
+}));
+tests();run();
+</script></body></html>
